@@ -159,7 +159,7 @@ public class TicketController {
             TicketDto ticketDto = new TicketDto();
             ticketDto.setTicketId(updatedTicket.get().getTicketId());
             ticketDto.setTicketName(updateTicket.getTicketName());
-            ticketDto.setTicketAssign(updateTicket.getTicketAssign());
+//            ticketDto.setTicketAssign(updateTicket.getTicketAssign());
             ticketDto.setTicketStartingDate(updatedTicket.get().getTicketStartingDate());
             ticketDto.setTicketEndingDate(updatedTicket.get().getTicketEndingDate());
             ticketDto.setTicketDescription(updateTicket.getTicketDescription());

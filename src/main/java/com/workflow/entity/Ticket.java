@@ -26,7 +26,8 @@ public class Ticket {
 
     private String ticketDescription;
 
-    private String ticketAssign;
+    @ManyToOne
+    private User ticketAssign;
 
     private Date ticketStartingDate;
 

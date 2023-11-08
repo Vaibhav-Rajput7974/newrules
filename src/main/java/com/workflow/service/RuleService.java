@@ -96,6 +96,9 @@ public class RuleService {
                 } else if (addRule.getTriggerCondition() == ConditionOnTrigger.STAGE) {
                     StageTrigger stageTrigger=addRule.getStageTrigger();
                     rule.setTrigger(stageTrigger);
+                } else if (addRule.getTriggerCondition() == ConditionOnTrigger.USER) {
+                    UserTrigger userTrigger=addRule.getUserTrigger();
+                    rule.setTrigger(userTrigger);
                 }
                 actionSelect(addRule,rule);
                 logger.info("Created rules for project with ID: {}", projectId);
@@ -125,6 +128,9 @@ public class RuleService {
         } else if (addRule.getActionCondition() == ConditionOnAction.DATE) {
             DateAction dateAction = addRule.getDateAction();
             rule.setAction(dateAction);
+        } else if (addRule.getActionCondition() == ConditionOnAction.USER) {
+            UserAction userAction=addRule.getUserAction();
+            rule.setAction(userAction);
         }
     }
     public void deleteRule(Long projectId, Long ruleId) {

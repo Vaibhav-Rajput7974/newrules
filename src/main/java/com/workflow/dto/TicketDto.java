@@ -1,5 +1,6 @@
 package com.workflow.dto;
 
+import com.workflow.entity.User;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -14,7 +15,7 @@ public class TicketDto {
 
         private String ticketDescription;
 
-        private String ticketAssign;
+        private User ticketAssign;
 
         private Date ticketStartingDate;
 

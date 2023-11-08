@@ -203,7 +203,7 @@ public class TicketService {
                         Ticket existingTicket = optionalTicket.get();
                         Stage stage=existingTicket.getStage();
                         existingTicket.setStage(newstage);
-//                        triggerStart.stageChangetrigger(stage.getStageId(),newstage.getStageId(),existingTicket,projectId);
+                        triggerStart.stageTrigger(stage.getStageId(),newstage.getStageId(),existingTicket,projectId);
                         ticketRepo.save(existingTicket);
                         logger.info("Ticeket Updated SuccessFully");
                         return existingTicket;

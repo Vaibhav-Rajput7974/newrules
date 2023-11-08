@@ -46,7 +46,7 @@ public class TriggerStart {
             List<Rule> ruleList = optionalProject.get().getRulesList();
             ruleList.forEach((rule) -> {
                 logger.info(rule.getTriggerField().getDataType()+"NUMBER");
-                if(rule.getTriggerField().getDataType().equals("NUMBER")){
+                if(rule.getTrigger().getConditionType() == ConditionOnTrigger.NUMBER){
                     NumberTrigger numberTrigger = (NumberTrigger) rule.getTrigger();
                     try {
                         triggerOnNumber(numberTrigger,existing,updated,rule,projectId);
@@ -55,7 +55,7 @@ public class TriggerStart {
                     } catch (IllegalAccessException | NoSuchMethodException e) {
                         throw new RuntimeException(e);
                     }
-                } else if (rule.getTriggerField().getDataType().equals("STRING")) {
+                } else if (rule.getTrigger().getConditionType() == ConditionOnTrigger.STRING) {
                     StringTrigger stringTrigger = (StringTrigger) rule.getTrigger();
                     try {
                         triggerOnString(stringTrigger,existing,updated,rule,projectId);
@@ -66,10 +66,22 @@ public class TriggerStart {
                     } catch (NoSuchMethodException e) {
                         throw new RuntimeException(e);
                     }
-                } else if (rule.getTriggerField().getDataType().equals("DATE")) {
+                } else if (rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE) {
                     DateTrigger dateTrigger = (DateTrigger) rule.getTrigger();
                     try {
                         triggerOnDate(updated,dateTrigger,rule,projectId);
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else if (rule.getTrigger().getConditionType() == ConditionOnTrigger.USER) {
+                    UserTrigger userTrigger = (UserTrigger) rule.getTrigger();
+
+                    try {
+                        triggerOnUser(userTrigger,existing,updated,rule,projectId);
                     } catch (InvocationTargetException e) {
                         throw new RuntimeException(e);
                     } catch (IllegalAccessException e) {
@@ -82,6 +94,46 @@ public class TriggerStart {
         }
     }
 
+
+    public void triggerOnUser(UserTrigger userTrigger,Ticket existing,Ticket updated,Rule rule,Long projectId) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Class<?> ticketClass = Ticket.class;
+        Method[] methods = ticketClass.getMethods();
+        for (Method method : methods) {
+            if (method.getName().startsWith("get")) {
+                String attributeName = method.getName().substring(3);
+
+                if (attributeName.equals(capitalizeFirstLetter(rule.getTriggerField().getName()))) {
+
+                    if(userTrigger.getOperation() == null || userTrigger == null)
+                        continue;
+
+                    Long existingValue = null;
+                    if(existing != null){
+                        existingValue=(Long) method.invoke(existing);
+                    }
+
+                    Long updatedValue =null;
+                    if(updated != null){
+                        updatedValue = (Long) method.invoke(updated);
+                    }
+                    logger.info(userTrigger.getOperation() + "---less");
+                    if (userTrigger.getOperation().equals("set")) {
+                        logger.info(updatedValue+"----"+userTrigger.getUserTrigger());
+                        if(updatedValue != null && userTrigger.getUserTrigger() != null && updatedValue.equals(userTrigger.getUserTrigger())){
+                            logger.info("string set started");
+                            actionStart.startAction(rule,updated,projectId);
+                        }
+                        logger.info("set string  exicuted");
+                    } else if (userTrigger.getOperation().equals("remove")) {
+                        if(existingValue!= null && userTrigger.getUserTrigger() != null && existingValue.equals(userTrigger.getUserTrigger())){
+                            logger.info("string remove started");
+                            actionStart.startAction(rule,updated,projectId);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
     public void triggerOnNumber(NumberTrigger numberTrigger,Ticket existing,Ticket updated,Rule rule,Long projectId) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {

@@ -9,6 +9,8 @@ public enum ConditionOnTrigger {
 
     STAGE,
 
-    PROJECT;
+    PROJECT,
+
+    USER;
 
 }

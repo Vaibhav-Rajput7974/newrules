@@ -9,5 +9,7 @@ public enum ConditionOnAction {
 
     STRING,
 
-    NUMBER;
+    NUMBER,
+
+    USER;
 }

@@ -46,6 +46,8 @@ public class  ActionStart {
             case DATE:
                 actionOnDate(rule, (DateAction) rule.getAction(),ticket,projectId);
                 break;
+            case USER:
+                actionOnUser(rule,(UserAction) rule.getAction(),ticket,projectId);
             default:
         }
     }
@@ -221,6 +223,39 @@ public class  ActionStart {
             }
         }
     }
+
+    public void actionOnUser(Rule rule, UserAction userAction, Ticket ticket, Long projectId)
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        logger.info("action on User ");
+        Class<?> ticketClass = Ticket.class;
+        Method[] methods = ticketClass.getMethods();
+        for (Method method : methods) {
+            if (method.getName().startsWith("get")) {
+                String attributeName = method.getName().substring(3);
+                logger.info(attributeName + "--" + capitalizeFirstLetter(rule.getActionField().getName()));
+                if (attributeName.equals(capitalizeFirstLetter(rule.getActionField().getName()))) {
+                    if (userAction.getOperation() == null || userAction == null)
+                        continue;
+                    logger.info(userAction.getOperation() + "---less");
+                    if (userAction.getOperation().equals("set")) {
+                        logger.info("set string action started");
+                        logger.info(String.valueOf(userAction.getUserAction()));
+                        String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
+                        logger.info(setterMethodName);
+                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
+                        setterMethod.invoke(ticket, userAction.getUserAction());
+                    } else if (userAction.getOperation().equals("remove")) {
+                        String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
+                        logger.info(setterMethodName);
+                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
+                        setterMethod.invoke(ticket, null);
+                    }
+                }
+            }
+        }
+    }
+
+
 
     private String capitalizeFirstLetter(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1);

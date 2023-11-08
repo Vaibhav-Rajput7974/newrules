@@ -20,6 +20,8 @@ public class RuleRequestDTO {
 
     private StageTrigger stageTrigger;
 
+    private UserTrigger userTrigger;
+
     private Long actionFieldId;
 
     private ConditionOnAction actionCondition;
@@ -33,4 +35,6 @@ public class RuleRequestDTO {
     private DateAction dateAction;
 
     private ProjectAction projectAction;
+
+    private UserAction userAction;
 }
