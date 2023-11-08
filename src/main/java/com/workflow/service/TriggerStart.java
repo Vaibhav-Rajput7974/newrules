@@ -153,7 +153,7 @@ public class TriggerStart {
                     logger.info(stringTrigger.getOperation() + "---less");
                     if (stringTrigger.getOperation().equals("set")) {
                         logger.info(updatedValue+"----"+stringTrigger.getCurrentString());
-                        if(updatedValue.equals(stringTrigger.getCurrentString())){
+                        if(updatedValue != null && stringTrigger.getCurrentString() != null && updatedValue.equals(stringTrigger.getCurrentString())){
                             logger.info("string set started");
                             actionStart.startAction(rule,updated,projectId);
                         }
@@ -161,12 +161,13 @@ public class TriggerStart {
                     } else if (stringTrigger.getOperation().equals("change")) {
                         System.out.println(updatedValue+"new"+stringTrigger.getCurrentString());
                         System.out.println(existingValue+"old"+stringTrigger.getPreviousString());
-                        if(updatedValue != null  && existingValue != null &&  updatedValue.equals(stringTrigger.getCurrentString()) && existingValue.equals(stringTrigger.getPreviousString())){
+                        if(updatedValue != null  && existingValue != null && stringTrigger.getCurrentString() != null
+                                && stringTrigger.getPreviousString() != null && updatedValue.equals(stringTrigger.getCurrentString()) && existingValue.equals(stringTrigger.getPreviousString())){
                             logger.info("string change started");
                             actionStart.startAction(rule,updated,projectId);
                         }
                     } else if (stringTrigger.getOperation().equals("remove")) {
-                        if(existingValue.equals(stringTrigger.getPreviousString())){
+                        if(existingValue!= null && stringTrigger.getPreviousString() != null && existingValue.equals(stringTrigger.getPreviousString())){
                             logger.info("string remove started");
                             actionStart.startAction(rule,updated,projectId);
                         }

@@ -132,8 +132,6 @@ public class TicketService {
 
                         Ticket existingTicket = optionalTicket.get();
 
-
-
                         triggerStart.updateTicketTrigger(existingTicket,updateTicket,projectId);
                         existingTicket.setTicketName(updateTicket.getTicketName());
                         existingTicket.setTicketStartingDate(updateTicket.getTicketStartingDate());

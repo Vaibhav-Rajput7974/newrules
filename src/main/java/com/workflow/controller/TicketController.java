@@ -132,7 +132,7 @@ public class TicketController {
                     new CustomResponseEntity("Stage with ID " + stageId + " not found", 404, null)
             );
         } catch (Exception e) {
-            logger.error("Error occurred while adding a new ticket: {}", e.getMessage());
+            logger.error("Error occurred while adding a new ticket: {} ,{} ", e.getMessage(),e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     new CustomResponseEntity("User ID Already Assigne Or May Be You Entered Empty Ticket Name, Please Provide Valid Input.", 500, null)
             );
@@ -163,7 +163,8 @@ public class TicketController {
             ticketDto.setTicketStartingDate(updatedTicket.get().getTicketStartingDate());
             ticketDto.setTicketEndingDate(updatedTicket.get().getTicketEndingDate());
             ticketDto.setTicketDescription(updateTicket.getTicketDescription());
-            ticketDto.setStageId(updatedTicket.get().getStage().getStageId());
+            if(updatedTicket.get().getStage() != null)
+                ticketDto.setStageId(updatedTicket.get().getStage().getStageId());
             ticketDto.setStatus(updateTicket.getStatus());
             ticketDto.setTicketPriority(updateTicket.getTicketPriority());
             return ResponseEntity.status(HttpStatus.CREATED).body(

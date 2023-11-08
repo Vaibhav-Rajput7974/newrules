@@ -1,13 +1,11 @@
 package com.workflow.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.workflow.entity.actionConditionType.ActionCondition;
 import com.workflow.entity.triggerConditionTypes.TriggerConditions;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 
 @Data
 @NoArgsConstructor

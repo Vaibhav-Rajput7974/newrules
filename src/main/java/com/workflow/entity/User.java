@@ -19,7 +19,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long userId;
 
-    @NotBlank(message = "User Name Cannot Be Blank")
     private String userName;
 
     private String userEmail;

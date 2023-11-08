@@ -1,11 +1,10 @@
 package com.workflow.service;
 
+import com.workflow.entity.Project;
 import com.workflow.entity.Rule;
+import com.workflow.entity.Stage;
 import com.workflow.entity.Ticket;
-import com.workflow.entity.actionConditionType.DateAction;
-import com.workflow.entity.actionConditionType.StageAction;
-import com.workflow.entity.actionConditionType.NumberAction;
-import com.workflow.entity.actionConditionType.StringAction;
+import com.workflow.entity.actionConditionType.*;
 import com.workflow.repository.ProjectRepo;
 import com.workflow.repository.TicketRepo;
 import org.slf4j.Logger;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 @Service
 public class  ActionStart {
@@ -38,8 +38,10 @@ public class  ActionStart {
                 actionOnString(rule,(StringAction) rule.getAction(),ticket,projectId);
                 break;
             case STAGE:
+                actionOnStage((StageAction) rule.getAction(),ticket,projectId);
                 break;
             case PROJECT:
+                actionProject((ProjectAction) rule.getAction(),ticket);
                 break;
             case DATE:
                 actionOnDate(rule, (DateAction) rule.getAction(),ticket,projectId);
@@ -94,7 +96,7 @@ public class  ActionStart {
 
                     logger.info(dateAction.getOperation() + "---less");
                     if (dateAction.getOperation().equals("set")) {
-                        logger.info("set string action started");
+                        logger.info("set date action started");
                         String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
@@ -107,6 +109,52 @@ public class  ActionStart {
                     }
                 }
             }
+        }
+    }
+
+    public void actionProject(ProjectAction projectAction, Ticket ticket){
+        logger.info("project set startes");
+        String operation=projectAction.getOperation();
+        Long currentprojectId=projectAction.getProjectId();
+        Long stageId= projectAction.getStageId();
+        Optional<Project> projectOptional = projectRepo.findById(currentprojectId);
+        if (projectOptional.isPresent()) {
+            Project project = projectOptional.get();
+            Optional<Stage> stageOptional = project.getStageList().stream()
+                    .filter(stage -> stage.getStageId().equals(stageId))
+                    .findFirst();
+            if (stageOptional.isPresent()) {
+                Stage stage = stageOptional.get();
+                if(operation.equals("set")){
+                    logger.info("stage Set Successfully");
+                    ticket.setStage(stage);
+                    ticketRepo.save(ticket);
+                }else if(operation.equals("remove")){
+                    ticket.setStage(null);
+                    ticketRepo.save(ticket);
+                }
+            }
+        }
+    }
+
+    public void actionOnStage(StageAction stageAction, Ticket ticket, Long projectId) {
+        logger.info("Changing stage to: {}", stageAction);
+        try {
+            System.out.println("runing");
+            Stage stage = stageService.getStageById(projectId, stageAction.getNewId());
+            if(stageAction.getOperation().equals("set")){
+                logger.info("set Stage");
+                ticket.setStage(stage);
+            }else if(stageAction.getOperation().equals("remove") && stageAction.getNewId() != null && ticket.getStage() != null && stageAction.getNewId().equals(ticket.getStage())) {
+                logger.info("remove stage ");
+                ticket.setStage(null);
+            }
+            ticketRepo.save(ticket);
+        }catch (NumberFormatException e){
+            logger.info("stage Id not found");
+        }
+        catch (Exception e) {
+            logger.error("Error occurred while saving ticket: {}", e.getMessage(), e);
         }
     }
 
