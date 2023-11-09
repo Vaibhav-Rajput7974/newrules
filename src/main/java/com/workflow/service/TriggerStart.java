@@ -78,17 +78,17 @@ public class TriggerStart {
                         throw new RuntimeException(e);
                     }
                 } else if (rule.getTrigger().getConditionType() == ConditionOnTrigger.USER) {
-                    UserTrigger userTrigger = (UserTrigger) rule.getTrigger();
-
-                    try {
-                        triggerOnUser(userTrigger,existing,updated,rule,projectId);
-                    } catch (InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    } catch (NoSuchMethodException e) {
-                        throw new RuntimeException(e);
-                    }
+//                    UserTrigger userTrigger = (UserTrigger) rule.getTrigger();
+//
+//                    try {
+//                        triggerOnUser(userTrigger,existing,updated,rule,projectId);
+//                    } catch (InvocationTargetException e) {
+//                        throw new RuntimeException(e);
+//                    } catch (IllegalAccessException e) {
+//                        throw new RuntimeException(e);
+//                    } catch (NoSuchMethodException e) {
+//                        throw new RuntimeException(e);
+//                    }
                 }
             });
         }
@@ -183,6 +183,7 @@ public class TriggerStart {
     public void triggerOnString(StringTrigger stringTrigger,Ticket existing,Ticket updated,Rule rule,Long projectId) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Class<?> ticketClass = Ticket.class;
         Method[] methods = ticketClass.getMethods();
+        logger.info("string trigger");
         for (Method method : methods) {
             if (method.getName().startsWith("get")) {
                 String attributeName = method.getName().substring(3);
@@ -202,6 +203,8 @@ public class TriggerStart {
                         updatedValue = (String) method.invoke(updated);
                     }
 
+                    logger.info(updatedValue);
+                    System.out.println(stringTrigger);
                     logger.info(stringTrigger.getOperation() + "---less");
                     if (stringTrigger.getOperation().equals("set")) {
                         logger.info(updatedValue+"----"+stringTrigger.getCurrentString());
@@ -249,19 +252,14 @@ public class TriggerStart {
                     }
                     logger.info(dateTrigger.getOperation() + "---less");
                     if (dateTrigger.getOperation().equals("before")) {
-                        dueDateApprocha(-dateTrigger.getDays(),-dateTrigger.getDays(),-dateTrigger.getMinuter(),rule,projectId);
+                        dueDateApprocha(null,-dateTrigger.getDays(),-dateTrigger.getDays(),-dateTrigger.getMinuter(),rule,projectId);
                         logger.info("before date  exicuted");
                     } else if (dateTrigger.getOperation().equals("equall")) {
                         logger.info("equall date exicuted");
-                        dueDateApprocha(0,0,0,rule,projectId);
+                        dueDateApprocha(dateTrigger.getDate(),0,0,0,rule,projectId);
                     } else if (dateTrigger.getOperation().equals("after")) {
                         logger.info("after date exicuted");
-                       dueDateApprocha(dateTrigger.getDays(),dateTrigger.getDays(),dateTrigger.getMinuter(),rule,projectId);
-                    } else if (dateTrigger.getOperation().equals("set")) {
-                        if(dateTrigger.getDate().compareTo(updatedValue) == 0) {
-                            logger.info("set date exicute ");
-                            actionStart.startAction(rule,ticket,projectId);
-                        }
+                       dueDateApprocha(null,dateTrigger.getDays(),dateTrigger.getDays(),dateTrigger.getMinuter(),rule,projectId);
                     }
                 }
             }
@@ -272,7 +270,7 @@ public class TriggerStart {
         return input.substring(0, 1).toUpperCase() + input.substring(1);
     }
 
-    public void dueDateApprocha(int days,int hours,int minute,Rule rule,Long projectId){
+    public void dueDateApprocha(Date ondate,int days,int hours,int minute,Rule rule,Long projectId){
         Project project = projectRepo.findById(projectId).orElse(null);
 
         if (project != null) {
@@ -292,8 +290,12 @@ public class TriggerStart {
                     Date notificationDate = calendar.getTime();
 
                     Calendar currentCalendar = Calendar.getInstance();
-                    currentCalendar.setTime(currentDate);
-                    currentCalendar.set(Calendar.SECOND,0);
+                    if( ondate != null){
+                        currentCalendar.setTime(currentDate);
+                    }
+                    else {
+                        currentCalendar.set(Calendar.SECOND,0);
+                    }
                     currentCalendar.set(Calendar.MILLISECOND, 0);
                     Date truncatedCurrentDate = currentCalendar.getTime();
 
@@ -303,6 +305,7 @@ public class TriggerStart {
                         System.out.println("hello");
                         try {
                             actionStart.startAction(rule, ticket, projectId);
+                            ticketRepo.save(ticket);
                         } catch (InvocationTargetException e) {
                             throw new RuntimeException(e);
                         } catch (IllegalAccessException e) {

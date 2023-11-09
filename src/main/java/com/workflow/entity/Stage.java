@@ -32,4 +32,13 @@ public class Stage {
     public Stage(String stageName) {
         this.stageName = stageName;
     }
+
+    @Override
+    public String toString() {
+        return "Stage{" +
+                "stageId=" + stageId +
+                ", stageName='" + stageName + '\'' +
+                ", stageDescription='" + stageDescription + '\'' +
+                '}';
+    }
 }

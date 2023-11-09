@@ -1,10 +1,12 @@
 package com.workflow.service;
 
 import com.workflow.customException.ProjectNotFoundException;
+import com.workflow.entity.Field;
 import com.workflow.entity.Project;
 import com.workflow.entity.Rule;
 import com.workflow.entity.triggerConditionTypes.ConditionOnTrigger;
 import com.workflow.entity.triggerConditionTypes.DateTrigger;
+import com.workflow.repository.FieldRepo;
 import com.workflow.repository.ProjectRepo;
 import com.workflow.repository.RuleRepo;
 import org.slf4j.Logger;
@@ -31,6 +33,9 @@ public class ProjectService {
 
     @Autowired
     private RuleRepo ruleRepo;
+
+    @Autowired
+    private FieldRepo fieldRepo;
 
     /**
      * Retrieve a list of all projects.
@@ -131,6 +136,13 @@ public class ProjectService {
                     System.out.println("Task 1 executed at: " + currentDate);
                 }
             });
+        }
+    }
+    public List<Field> getAllField() {
+        try {
+            return fieldRepo.findAll();
+        } catch (Exception e) {
+            throw e;
         }
     }
 

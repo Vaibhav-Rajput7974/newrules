@@ -149,9 +149,8 @@ public class  ActionStart {
                 ticket.setStage(stage);
             }else if(stageAction.getOperation().equals("remove") && stageAction.getNewId() != null && ticket.getStage() != null && stageAction.getNewId().equals(ticket.getStage())) {
                 logger.info("remove stage ");
-                ticket.setStage(null);
+//                ticket.setStage(null);
             }
-            ticketRepo.save(ticket);
         }catch (NumberFormatException e){
             logger.info("stage Id not found");
         }

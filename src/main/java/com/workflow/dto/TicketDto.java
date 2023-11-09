@@ -15,13 +15,13 @@ public class TicketDto {
 
         private String ticketDescription;
 
-        private User ticketAssign;
+        private String ticketAssign;
 
         private Date ticketStartingDate;
 
         private Date ticketEndingDate;
 
-        private long stageId;
+        private Long stageId;
 
         private String status;
 

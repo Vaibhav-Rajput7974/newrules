@@ -153,20 +153,22 @@ public class TicketController {
             @PathVariable long projectId,
             @PathVariable long stageId) {
         try {
+
             Optional<Ticket> updatedTicket = ticketService.updateTicket(updateTicket, projectId, stageId);
             logger.info("Updated Ticket Successfully");
 
             TicketDto ticketDto = new TicketDto();
             ticketDto.setTicketId(updatedTicket.get().getTicketId());
-            ticketDto.setTicketName(updateTicket.getTicketName());
-//            ticketDto.setTicketAssign(updateTicket.getTicketAssign());
+            ticketDto.setTicketName(updatedTicket.get().getTicketName());
+            ticketDto.setTicketAssign(updateTicket.getTicketAssign());
             ticketDto.setTicketStartingDate(updatedTicket.get().getTicketStartingDate());
             ticketDto.setTicketEndingDate(updatedTicket.get().getTicketEndingDate());
-            ticketDto.setTicketDescription(updateTicket.getTicketDescription());
+            ticketDto.setTicketDescription(updatedTicket.get().getTicketDescription());
+//            System.out.println(updatedTicket.get().getStage().getStageId());
             if(updatedTicket.get().getStage() != null)
                 ticketDto.setStageId(updatedTicket.get().getStage().getStageId());
-            ticketDto.setStatus(updateTicket.getStatus());
-            ticketDto.setTicketPriority(updateTicket.getTicketPriority());
+            ticketDto.setStatus(updatedTicket.get().getStatus());
+            ticketDto.setTicketPriority(updatedTicket.get().getTicketPriority());
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     new CustomResponseEntity("Ticket updated successfully", 200, ticketDto)
             );
@@ -186,7 +188,7 @@ public class TicketController {
                     new CustomResponseEntity("Stage with ID " + stageId + " not found", 404, null)
             );
         } catch (Exception e) {
-            logger.error("Error occurred while updating ticket with ID {}: {}", updateTicket.getTicketId(), e.getMessage());
+            logger.error("Error occurred while updating ticket with ID {}: {} {}", updateTicket.getTicketId(), e.getMessage(),e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     new CustomResponseEntity("Internal Server Error", 500, null)
             );

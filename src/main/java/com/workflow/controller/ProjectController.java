@@ -3,6 +3,7 @@ package com.workflow.controller;
 import com.workflow.customException.ProjectNotFoundException;
 import com.workflow.dto.ProjectDto;
 import com.workflow.entity.CustomResponseEntity;
+import com.workflow.entity.Field;
 import com.workflow.entity.Project;
 import com.workflow.entity.Stage;
 import com.workflow.service.ProjectService;
@@ -128,6 +129,17 @@ public class ProjectController {
             logger.error("Error occurred while deleting project with ID {}", projectId);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new CustomResponseEntity("Error occurred while deleting project", HttpStatus.INTERNAL_SERVER_ERROR.value(), null));
+        }
+    }
+    @GetMapping("/fields")
+    public ResponseEntity<?> getField() {
+        try {
+            List<Field> fieldList = projectService.getAllField();
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new CustomResponseEntity("All fields retrieved successfully", HttpStatus.NO_CONTENT.value(), fieldList));
+        } catch (ProjectNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponseEntity("Fields with ID not found", HttpStatus.NOT_FOUND.value(), null));
         }
     }
 }

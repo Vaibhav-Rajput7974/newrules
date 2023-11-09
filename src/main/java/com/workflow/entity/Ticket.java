@@ -26,8 +26,7 @@ public class Ticket {
 
     private String ticketDescription;
 
-    @ManyToOne
-    private User ticketAssign;
+    private String ticketAssign;
 
     private Date ticketStartingDate;
 
@@ -40,6 +39,18 @@ public class Ticket {
     private Stage stage;
 
     private String status;
+
+    @Override
+    public String toString() {
+        return "Ticket{" +
+                "ticketId=" + ticketId +
+                ", ticketName='" + ticketName + '\'' +
+                ", ticketDescription='" + ticketDescription + '\'' +
+                ", ticketAssign='" + ticketAssign + '\'' +
+                ", ticketPriority='" + ticketPriority + '\'' +
+                ", stage=" + stage +
+                '}';
+    }
 }
 
 
