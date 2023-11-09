@@ -129,11 +129,11 @@ public class  ActionStart {
                 Stage stage = stageOptional.get();
                 if(operation.equals("set")){
                     logger.info("stage Set Successfully");
+                    logger.info(String.valueOf(stage.getStageId()));
                     ticket.setStage(stage);
                     ticketRepo.save(ticket);
                 }else if(operation.equals("remove")){
                     ticket.setStage(null);
-                    ticketRepo.save(ticket);
                 }
             }
         }
@@ -151,6 +151,7 @@ public class  ActionStart {
                 logger.info("remove stage ");
 //                ticket.setStage(null);
             }
+            ticketRepo.save(ticket);
         }catch (NumberFormatException e){
             logger.info("stage Id not found");
         }
@@ -253,8 +254,6 @@ public class  ActionStart {
             }
         }
     }
-
-
 
     private String capitalizeFirstLetter(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1);

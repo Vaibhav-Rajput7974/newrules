@@ -208,7 +208,10 @@ public class TriggerStart {
                     logger.info(stringTrigger.getOperation() + "---less");
                     if (stringTrigger.getOperation().equals("set")) {
                         logger.info(updatedValue+"----"+stringTrigger.getCurrentString());
-                        if(updatedValue != null && stringTrigger.getCurrentString() != null && updatedValue.equals(stringTrigger.getCurrentString())){
+                        if(updatedValue != null && stringTrigger.getCurrentString() != null
+                                && updatedValue.equals(stringTrigger.getCurrentString())
+                                && (existingValue == null || !existingValue.equals(updatedValue))
+                        ){
                             logger.info("string set started");
                             actionStart.startAction(rule,updated,projectId);
                         }
@@ -222,7 +225,10 @@ public class TriggerStart {
                             actionStart.startAction(rule,updated,projectId);
                         }
                     } else if (stringTrigger.getOperation().equals("remove")) {
-                        if(existingValue!= null && stringTrigger.getPreviousString() != null && existingValue.equals(stringTrigger.getPreviousString())){
+                        if(existingValue!= null && stringTrigger.getPreviousString() != null
+                                && existingValue.equals(stringTrigger.getPreviousString())
+                                && (updatedValue == null || !updatedValue.equals(existingValue))
+                        ){
                             logger.info("string remove started");
                             actionStart.startAction(rule,updated,projectId);
                         }
@@ -328,7 +334,10 @@ public class TriggerStart {
                 if(rule.getTrigger().getConditionType() == ConditionOnTrigger.STAGE){
                     StageTrigger stageCondition= (StageTrigger) rule.getTrigger();
                     if(stageCondition.equals("set") ){
-                        if(stageCondition.getCurrentStage().equals(currentStage)){
+                        if(currentStage != null && stageCondition.getCurrentStage() != null
+                                && currentStage.equals(stageCondition.getCurrentStage())
+                                && (previousStage == null || !previousStage.equals(currentStage))
+                        ){
                             logger.info("stage set exicuted");
                         }
                     } else if (stageCondition.equals("change")) {

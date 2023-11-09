@@ -102,7 +102,7 @@ public class TicketService {
                     addTicket.setStage(stageOptional.get());
                     logger.info("Ticket Added SuccessFully");
                     Ticket ticket=ticketRepo.save(addTicket);;
-//                    triggerStart.updateTicketTrigger(null,ticket,projectId);
+                    triggerStart.updateTicketTrigger(null,ticket,projectId);
                     return ticket;
                 } else {
                     throw new StageNotFoundException("Stage with ID " + stageId + " not found for Project " + projectId);
@@ -140,10 +140,10 @@ public class TicketService {
                         existingTicket.setTicketDescription(updateTicket.getTicketDescription());
                         existingTicket.setStatus(updateTicket.getStatus());
                         existingTicket.setTicketPriority(updateTicket.getTicketPriority());
-
-                        ticketRepo.save(existingTicket);
+                        System.out.println("dsds"+existingTicket.getStage().getStageId());
+                        Ticket ticket = ticketRepo.save(existingTicket);
                         logger.info("Ticket Updated Successfully");
-                        return Optional.of(existingTicket);
+                        return Optional.of(ticket);
                     } else {
                         throw new TicketNotFoundException("Ticket with ID " + updateTicket.getTicketId() + " not found.");
                     }
