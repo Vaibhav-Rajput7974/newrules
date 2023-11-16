@@ -125,7 +125,7 @@ public class ProjectService {
                     Date currentDate=new Date();
                     DateTrigger dateTrigger = (DateTrigger) rule.getTrigger();
                     try {
-                        triggerStart.triggerOnDate(null,dateTrigger,rule,rule.getProject().getProjectId());
+                        triggerStart.triggerOnDate(dateTrigger,rule,rule.getProject().getProjectId());
                     } catch (InvocationTargetException e) {
                         throw new RuntimeException(e);
                     } catch (IllegalAccessException e) {

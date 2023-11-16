@@ -19,7 +19,7 @@ public class CorsConfig {
         config.addAllowedOrigin("http://localhost:3000"); // Add your React app's origin here
 
         config.addAllowedMethod("*");
-
+        config.setAllowCredentials(true);
         config.addAllowedHeader("*");
 
         source.registerCorsConfiguration("/**", config);

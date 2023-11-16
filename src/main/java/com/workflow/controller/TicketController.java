@@ -117,9 +117,21 @@ public class TicketController {
             @PathVariable long stageId) {
         try {
             Ticket savedTicket = ticketService.addTicket(addTicket, projectId, stageId);
+            TicketDto ticketDto = new TicketDto();
+            ticketDto.setTicketId(savedTicket.getTicketId());
+            ticketDto.setTicketName(savedTicket.getTicketName());
+            ticketDto.setTicketAssign(savedTicket.getTicketAssign());
+            ticketDto.setTicketStartingDate(savedTicket.getTicketStartingDate());
+            ticketDto.setTicketEndingDate(savedTicket.getTicketEndingDate());
+            ticketDto.setTicketDescription(savedTicket.getTicketDescription());
+//            System.out.println(updatedTicket.get().getStage().getStageId());
+            if(savedTicket.getStage() != null)
+                ticketDto.setStageId(savedTicket.getStage().getStageId());
+            ticketDto.setStatus(savedTicket.getStatus());
+            ticketDto.setTicketPriority(savedTicket.getTicketPriority());
             logger.info("Added Ticket Successfully");
             return ResponseEntity.status(HttpStatus.CREATED).body(
-                    new CustomResponseEntity("Ticket added successfully", 201, savedTicket)
+                    new CustomResponseEntity("Ticket added successfully", 201, ticketDto)
             );
         }catch (ProjectNotFoundException e) {
             logger.error("Project with ID {} not found: {}", projectId, e.getMessage());
@@ -160,7 +172,7 @@ public class TicketController {
             TicketDto ticketDto = new TicketDto();
             ticketDto.setTicketId(updatedTicket.get().getTicketId());
             ticketDto.setTicketName(updatedTicket.get().getTicketName());
-            ticketDto.setTicketAssign(updateTicket.getTicketAssign());
+            ticketDto.setTicketAssign(updatedTicket.get().getTicketAssign());
             ticketDto.setTicketStartingDate(updatedTicket.get().getTicketStartingDate());
             ticketDto.setTicketEndingDate(updatedTicket.get().getTicketEndingDate());
             ticketDto.setTicketDescription(updatedTicket.get().getTicketDescription());

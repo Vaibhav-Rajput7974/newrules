@@ -6,10 +6,12 @@ import com.workflow.entity.Stage;
 import com.workflow.entity.Ticket;
 import com.workflow.entity.actionConditionType.*;
 import com.workflow.repository.ProjectRepo;
+import com.workflow.repository.StageRepo;
 import com.workflow.repository.TicketRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
@@ -27,32 +29,38 @@ public class  ActionStart {
     private TicketRepo ticketRepo;
     @Autowired
     private StageService stageService;
+    @Autowired
+    private StageRepo stageRepo;
 
-    public void startAction(Rule rule, Ticket ticket, Long projectId) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    @Autowired
+    private  SimpMessagingTemplate messagingTemplate;
+
+
+    public void startAction(Rule rule, Ticket ticket) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         logger.info("action");
         switch (rule.getAction().getConditionType()){
             case NUMBER:
-                actionOnNumber(rule,(NumberAction) rule.getAction(),ticket,projectId);
+                actionOnNumber(rule,(NumberAction) rule.getAction(),ticket);
                 break;
             case STRING:
-                actionOnString(rule,(StringAction) rule.getAction(),ticket,projectId);
+                actionOnString(rule,(StringAction) rule.getAction(),ticket);
                 break;
             case STAGE:
-                actionOnStage((StageAction) rule.getAction(),ticket,projectId);
+                actionOnStage((StageAction) rule.getAction(),ticket);
                 break;
             case PROJECT:
                 actionProject((ProjectAction) rule.getAction(),ticket);
                 break;
             case DATE:
-                actionOnDate(rule, (DateAction) rule.getAction(),ticket,projectId);
+                actionOnDate(rule, (DateAction) rule.getAction(),ticket);
                 break;
             case USER:
-                actionOnUser(rule,(UserAction) rule.getAction(),ticket,projectId);
+                actionOnUser(rule,(UserAction) rule.getAction(),ticket);
             default:
         }
     }
 
-    public void actionOnNumber(Rule rule,NumberAction numberAction, Ticket ticket, Long projectId) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void actionOnNumber(Rule rule,NumberAction numberAction, Ticket ticket) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         logger.info("action on String ");
         Class<?> ticketClass = Ticket.class;
         Method[] methods = ticketClass.getMethods();
@@ -83,7 +91,7 @@ public class  ActionStart {
         }
     }
 
-    public void actionOnDate(Rule rule, DateAction dateAction, Ticket ticket, Long projectId) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void actionOnDate(Rule rule, DateAction dateAction, Ticket ticket) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         logger.info("action on String ");
         Class<?> ticketClass = Ticket.class;
         Method[] methods = ticketClass.getMethods();
@@ -139,11 +147,11 @@ public class  ActionStart {
         }
     }
 
-    public void actionOnStage(StageAction stageAction, Ticket ticket, Long projectId) {
+    public void actionOnStage(StageAction stageAction, Ticket ticket) {
         logger.info("Changing stage to: {}", stageAction);
         try {
             System.out.println("runing");
-            Stage stage = stageService.getStageById(projectId, stageAction.getNewId());
+            Stage stage = stageRepo.findById(stageAction.getNewId()).get();
             if(stageAction.getOperation().equals("set")){
                 logger.info("set Stage");
                 ticket.setStage(stage);
@@ -160,7 +168,7 @@ public class  ActionStart {
         }
     }
 
-    public void actionOnStageId(Rule rule, StageAction stageAction, Ticket ticket, Long projectId) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public void actionOnStageId(Rule rule, StageAction stageAction, Ticket ticket) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         logger.info("action on String ");
         Class<?> ticketClass = Ticket.class;
         Method[] methods = ticketClass.getMethods();
@@ -193,7 +201,7 @@ public class  ActionStart {
         }
     }
 
-    public void actionOnString(Rule rule, StringAction stringAction, Ticket ticket, Long projectId)
+    public void actionOnString(Rule rule, StringAction stringAction, Ticket ticket)
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         logger.info("action on String ");
         Class<?> ticketClass = Ticket.class;
@@ -213,6 +221,7 @@ public class  ActionStart {
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
                         setterMethod.invoke(ticket, stringAction.getNextString());
+                        messagingTemplate.convertAndSend("/topic/actions","Action on String completed: ");
                     } else if (stringAction.getOperation().equals("remove")) {
                         String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
                         logger.info(setterMethodName);
@@ -224,7 +233,7 @@ public class  ActionStart {
         }
     }
 
-    public void actionOnUser(Rule rule, UserAction userAction, Ticket ticket, Long projectId)
+    public void actionOnUser(Rule rule, UserAction userAction, Ticket ticket)
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         logger.info("action on User ");
         Class<?> ticketClass = Ticket.class;
