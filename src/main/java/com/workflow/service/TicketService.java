@@ -3,6 +3,7 @@ package com.workflow.service;
 import com.workflow.customException.ProjectNotFoundException;
 import com.workflow.customException.StageNotFoundException;
 import com.workflow.customException.TicketNotFoundException;
+import com.workflow.dto.TicketDto;
 import com.workflow.entity.Project;
 import com.workflow.entity.Stage;
 import com.workflow.entity.Ticket;
@@ -140,7 +141,7 @@ public class TicketService {
     }
   }
 
-  public Optional<Ticket> updateTicket(Ticket updateTicket, Long projectId, Long stageId)
+  public Optional<Ticket> updateTicket(TicketDto updateTicket, Long projectId, Long stageId)
       throws InvocationTargetException, IllegalAccessException {
     try {
       Optional<Project> projectOptional = projectRepo.findById(projectId);
@@ -158,7 +159,7 @@ public class TicketService {
             logger.info("ticket with id {}", updateTicket.getTicketId());
 
             Ticket existingTicket = optionalTicket.get();
-            triggerStart.triggerOnUpdate(existingTicket, updateTicket, projectId);
+            Ticket existingTicketDummy = existingTicket.clone();
             //
             // triggerStart.updateTicketTrigger(existingTicket,updateTicket,projectId);
             existingTicket.setTicketName(updateTicket.getTicketName());
@@ -168,8 +169,14 @@ public class TicketService {
             existingTicket.setTicketDescription(updateTicket.getTicketDescription());
             existingTicket.setStatus(updateTicket.getStatus());
             existingTicket.setTicketPriority(updateTicket.getTicketPriority());
+            Long newStageId=updateTicket.getStageId();
+            if(newStageId != null){
+              Stage newStage=stageRepo.findById(newStageId).get();
+              existingTicket.setStage(newStage);
+            }
             System.out.println("dsds" + existingTicket.getStage().getStageId());
             Ticket ticket = ticketRepo.save(existingTicket);
+            triggerStart.triggerOnUpdate(existingTicketDummy, ticket, projectId);
             logger.info("Ticket Updated Successfully");
             return Optional.of(ticket);
           } else {

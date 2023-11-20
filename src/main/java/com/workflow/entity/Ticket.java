@@ -16,7 +16,23 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Ticket {
+public class Ticket implements Cloneable {
+
+    @Override
+    public Ticket clone() {
+        try {
+            // Perform a shallow copy of the object
+            Ticket clonedTicket = (Ticket) super.clone();
+
+            // If there are reference types within Ticket, clone them as well
+            // Assuming no reference types in this example
+
+            return clonedTicket;
+        } catch (CloneNotSupportedException e) {
+            // This should never happen since Ticket implements Cloneable
+            throw new AssertionError(e);
+        }
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

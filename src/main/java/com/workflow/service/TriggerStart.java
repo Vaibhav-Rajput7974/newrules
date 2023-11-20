@@ -30,62 +30,6 @@ public class TriggerStart {
 
   @Autowired private RuleRepo ruleRepo;
 
-  //  public void updateTicketTrigger(Ticket existing, Ticket updated, Long projectId) {
-  //    Optional<Project> optionalProject = projectRepo.findById(projectId);
-  //    if (optionalProject.isPresent()) {
-  //      logger.info("status_trigger");
-  //      List<Rule> ruleList = optionalProject.get().getRulesList();
-  //      ruleList.forEach(
-  //          (rule) -> {
-  //            logger.info(rule.getTriggerField().getDataType() + "NUMBER");
-  //            if (rule.getTrigger().getConditionType() == ConditionOnTrigger.NUMBER) {
-  //              NumberTrigger numberTrigger = (NumberTrigger) rule.getTrigger();
-  //              try {
-  //                triggerOnNumber(existing, updated, projectId);
-  //              } catch (InvocationTargetException e) {
-  //                throw new RuntimeException(e);
-  //              } catch (IllegalAccessException | NoSuchMethodException e) {
-  //                throw new RuntimeException(e);
-  //              }
-  //            } else if (rule.getTrigger().getConditionType() == ConditionOnTrigger.STRING) {
-  //              //              StringTrigger stringTrigger = (StringTrigger) rule.getTrigger();
-  //              //              try {
-  //              //                triggerOnString(stringTrigger, existing, updated, rule);
-  //              //              } catch (InvocationTargetException e) {
-  //              //                throw new RuntimeException(e);
-  //              //              } catch (IllegalAccessException e) {
-  //              //                throw new RuntimeException(e);
-  //              //              } catch (NoSuchMethodException e) {
-  //              //                throw new RuntimeException(e);
-  //              //              }
-  //            } else if (rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE) {
-  //              DateTrigger dateTrigger = (DateTrigger) rule.getTrigger();
-  //              try {
-  //                triggerOnDate(updated, dateTrigger, rule, projectId);
-  //              } catch (InvocationTargetException e) {
-  //                throw new RuntimeException(e);
-  //              } catch (IllegalAccessException e) {
-  //                throw new RuntimeException(e);
-  //              } catch (NoSuchMethodException e) {
-  //                throw new RuntimeException(e);
-  //              }
-  //            } else if (rule.getTrigger().getConditionType() == ConditionOnTrigger.USER) {
-  //              //                    UserTrigger userTrigger = (UserTrigger) rule.getTrigger();
-  //              //
-  //              //                    try {
-  //              //
-  // triggerOnUser(userTrigger,existing,updated,rule,projectId);
-  //              //                    } catch (InvocationTargetException e) {
-  //              //                        throw new RuntimeException(e);
-  //              //                    } catch (IllegalAccessException e) {
-  //              //                        throw new RuntimeException(e);
-  //              //                    } catch (NoSuchMethodException e) {
-  //              //                        throw new RuntimeException(e);
-  //              //                    }
-  //            }
-  //          });
-  //    }
-  //  }
 
   public void triggerOnUser(
           List<Rule> ruleList, User existingValue, User updatedValue, Ticket ticket) {
@@ -211,7 +155,7 @@ public class TriggerStart {
               || (updatedValue != null
                   && existingValue != null
                   && !updatedValue.equals(existingValue))) {
-            System.out.println("string trigger");
+            System.out.println("stage trigger");
             List<Rule> ruleListString = ruleRepo.findByTriggerFieldAndProject(attributField,project);
             stageTrigger(ruleListString, existingValue, updatedValue, updated);
           }
@@ -357,30 +301,67 @@ public class TriggerStart {
 
   public void stageTrigger(
       List<Rule> ruleList, Stage existingStage, Stage currentStage, Ticket ticket) {
+    logger.info("stageTrigger started");
     ruleList.forEach(
         (rule) -> {
           StageTrigger stageTrigger = (StageTrigger) rule.getTrigger();
-          if (stageTrigger.equals("set")) {
+          System.out.println(stageTrigger.getOperation());
+          if (stageTrigger.getOperation().equals("set")) {
+            System.out.println(existingStage + "00" + stageTrigger.getPreviousStage());
+            System.out.println(currentStage + "11" + stageTrigger.getCurrentStage());
             if (currentStage != null
                 && stageTrigger.getCurrentStage() != null
-                && currentStage.equals(stageTrigger.getCurrentStage())
-                && (existingStage == null || !existingStage.equals(currentStage))) {
+                && currentStage.getStageId().equals(stageTrigger.getCurrentStage())
+                && (existingStage == null || !existingStage.getStageId().equals(currentStage.getStageId()))) {
+              try {
+                System.out.println("set Started in stage");
+                actionStart.startAction(rule, ticket);
+              } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+              } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+              } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+              }
               logger.info("stage set exicuted");
             }
-          } else if (stageTrigger.equals("change")) {
+          } else if (stageTrigger.getOperation().equals("change")) {
+            System.out.println(existingStage + "00" + stageTrigger.getPreviousStage());
+            System.out.println(currentStage + "11" + stageTrigger.getCurrentStage());
+
             if (existingStage != null
                 && currentStage != null
                 && stageTrigger.getCurrentStage() != null
                 && stageTrigger.getPreviousStage() != null
-                && stageTrigger.getPreviousStage().equals(existingStage)
-                && stageTrigger.getCurrentStage().equals(currentStage)) {
+                && stageTrigger.getPreviousStage().equals(existingStage.getStageId())
+                && stageTrigger.getCurrentStage().equals(currentStage.getStageId())) {
+
+              try {
+                actionStart.startAction(rule, ticket);
+              } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+              } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+              } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+              }
               logger.info("stage change exicuted");
             }
-          } else if (stageTrigger.equals("remove")) {
+          } else if (stageTrigger.getOperation().equals("remove")) {
             if (existingStage != null
                 && stageTrigger.getPreviousStage() != null
-                && stageTrigger.getPreviousStage().equals(existingStage)
-                && (currentStage == null || !existingStage.equals(currentStage))) {
+                && stageTrigger.getPreviousStage().equals(existingStage.getStageId())
+                && (currentStage == null || !existingStage.getStageId().equals(currentStage.getStageId()))) {
+              try {
+                logger.info("remove from the stage trigger");
+                actionStart.startAction(rule, ticket);
+              } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+              } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+              } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+              }
               logger.info("stage removed exicuted");
             }
           }

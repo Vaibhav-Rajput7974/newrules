@@ -74,10 +74,22 @@ public class TicketController {
             @PathVariable long stageId,
             @PathVariable long ticketId) {
         try {
-            Optional<Ticket> ticket = ticketService.getTicketById(ticketId, projectId, stageId);
+            Ticket ticket = ticketService.getTicketById(ticketId, projectId, stageId).get();
+
+            TicketDto ticketDto = new TicketDto();
+            ticketDto.setTicketId(ticket.getTicketId());
+            ticketDto.setTicketName(ticket.getTicketName());
+            ticketDto.setTicketAssign(ticket.getTicketAssign());
+            ticketDto.setTicketStartingDate(ticket.getTicketStartingDate());
+            ticketDto.setTicketEndingDate(ticket.getTicketEndingDate());
+            ticketDto.setTicketDescription(ticket.getTicketDescription());
+            ticketDto.setStageId(ticket.getStage().getStageId());
+            ticketDto.setStatus(ticket.getStatus());
+            ticketDto.setTicketPriority(ticket.getTicketPriority());
+
             logger.info("Retrieved Ticket by Ticket ID");
             return ResponseEntity.ok(
-                    new CustomResponseEntity("Retrieved Ticket by Ticket ID", 200, ticket.orElse(null))
+                    new CustomResponseEntity("Retrieved Ticket by Ticket ID", 200, ticketDto)
             );
         } catch (TicketNotFoundException e) {
             logger.error("Ticket with ID {} not found: {}", ticketId, e.getMessage());
@@ -161,12 +173,12 @@ public class TicketController {
      */
     @PutMapping("/{projectId}/stages/{stageId}/tickets")
     public ResponseEntity<?> updateTicket(
-            @RequestBody Ticket updateTicket,
+            @RequestBody TicketDto ticketRequest,
             @PathVariable long projectId,
             @PathVariable long stageId) {
         try {
 
-            Optional<Ticket> updatedTicket = ticketService.updateTicket(updateTicket, projectId, stageId);
+            Optional<Ticket> updatedTicket = ticketService.updateTicket(ticketRequest, projectId, stageId);
             logger.info("Updated Ticket Successfully");
 
             TicketDto ticketDto = new TicketDto();
@@ -185,9 +197,9 @@ public class TicketController {
                     new CustomResponseEntity("Ticket updated successfully", 200, ticketDto)
             );
         } catch (TicketNotFoundException e) {
-            logger.error("Ticket with ID {} not found: {}", updateTicket.getTicketId(), e.getMessage());
+            logger.error("Ticket with ID {} not found: {}", ticketRequest.getTicketId(), e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new CustomResponseEntity("Ticket with ID " + updateTicket.getTicketId() + " not found", 404, null)
+                    new CustomResponseEntity("Ticket with ID " + ticketRequest.getTicketId() + " not found", 404, null)
             );
         } catch (ProjectNotFoundException e) {
             logger.error("Project with ID {} not found: {}", projectId, e.getMessage());
@@ -200,7 +212,7 @@ public class TicketController {
                     new CustomResponseEntity("Stage with ID " + stageId + " not found", 404, null)
             );
         } catch (Exception e) {
-            logger.error("Error occurred while updating ticket with ID {}: {} {}", updateTicket.getTicketId(), e.getMessage(),e);
+            logger.error("Error occurred while updating ticket with ID {}: {} {}", ticketRequest.getTicketId(), e.getMessage(),e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     new CustomResponseEntity("Internal Server Error", 500, null)
             );
