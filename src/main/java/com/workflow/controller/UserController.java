@@ -1,5 +1,6 @@
 package com.workflow.controller;
 
+import com.workflow.entity.CustomResponseEntity;
 import com.workflow.entity.User;
 import com.workflow.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,26 +12,32 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("projects/{projectId}/users")
+@RequestMapping("/users")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers(@PathVariable long projectId) {
+    public ResponseEntity<?> getAllUsers() {
         List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new CustomResponseEntity<>("list of users",500,users)
+        );
     }
 
-    public ResponseEntity<User> getUserById(@PathVariable long userId) {
+    public ResponseEntity<?> getUserById(@PathVariable long userId) {
         Optional<User> optionalUser = userService.getUserById(userId);
 
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            return ResponseEntity.ok(user);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new CustomResponseEntity<>("list of all the user",500,user)
+            );
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new CustomResponseEntity<>("user Not found",404,null)
+            );
         }
     }
 

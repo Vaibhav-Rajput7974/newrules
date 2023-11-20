@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -26,7 +27,9 @@ public class Ticket {
 
     private String ticketDescription;
 
-    private String ticketAssign;
+    @JoinColumn(name = "user_Id")
+    @ManyToOne
+    private User ticketAssign;
 
     private Date ticketStartingDate;
 

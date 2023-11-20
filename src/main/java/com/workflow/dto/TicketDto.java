@@ -1,10 +1,13 @@
 package com.workflow.dto;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import com.workflow.entity.User;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class TicketDto {
@@ -15,7 +18,7 @@ public class TicketDto {
 
         private String ticketDescription;
 
-        private String ticketAssign;
+        private User ticketAssign;
 
         private Date ticketStartingDate;
 

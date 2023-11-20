@@ -6,6 +6,7 @@ import com.workflow.customException.TicketNotFoundException;
 import com.workflow.entity.Project;
 import com.workflow.entity.Stage;
 import com.workflow.entity.Ticket;
+import com.workflow.entity.User;
 import com.workflow.repository.ProjectRepo;
 import com.workflow.repository.StageRepo;
 import com.workflow.repository.TicketRepo;
@@ -115,7 +116,6 @@ public class TicketService {
         if (stageOptional.isPresent()) {
           addTicket.setStage(stageOptional.get());
           logger.info("Ticket Added SuccessFully");
-
 //          Date startingDate = addTicket.getTicketStartingDate();
 //          Date endDate = addTicket.getTicketEndingDate();
 //
@@ -125,9 +125,8 @@ public class TicketService {
 
           Ticket ticket = ticketRepo.save(addTicket);
           triggerStart.triggerOnUpdate(null, ticket, projectId);
-//          ;
-//          triggerStart.updateTicketTrigger(null, ticket, projectId);
-          return ticket;
+          Ticket ticket1 = ticketRepo.save(ticket);
+          return ticket1;
         } else {
           throw new StageNotFoundException(
               "Stage with ID " + stageId + " not found for Project " + projectId);

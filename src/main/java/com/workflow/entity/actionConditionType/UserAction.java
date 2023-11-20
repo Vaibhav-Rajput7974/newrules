@@ -13,7 +13,8 @@ public class UserAction extends ActionCondition{
 
     private String operation;
 
-    @OneToOne
+    @JoinColumn(name = "user_Id")
+    @ManyToOne
     private User userAction;
 
     @Override

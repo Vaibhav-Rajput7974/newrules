@@ -13,8 +13,14 @@ public class UserTrigger extends TriggerConditions{
 
     private String operation;
 
-    @OneToOne
-    private User userTrigger;
+    @ManyToOne
+    private User previousUser;
+
+    @ManyToOne
+    private User currentUser;
+
+
+
     @Override
     public ConditionOnTrigger getConditionType() {
         return ConditionOnTrigger.USER;

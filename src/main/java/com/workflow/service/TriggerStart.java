@@ -88,48 +88,69 @@ public class TriggerStart {
   //  }
 
   public void triggerOnUser(
-      UserTrigger userTrigger, Ticket existing, Ticket updated, Rule rule, Long projectId)
-      throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-    Class<?> ticketClass = Ticket.class;
-    Method[] methods = ticketClass.getMethods();
-    for (Method method : methods) {
-      if (method.getName().startsWith("get")) {
-        String attributeName = method.getName().substring(3);
-
-        if (attributeName.equals(capitalizeFirstLetter(rule.getTriggerField().getName()))) {
-
-          if (userTrigger.getOperation() == null || userTrigger == null) continue;
-
-          Long existingValue = null;
-          if (existing != null) {
-            existingValue = (Long) method.invoke(existing);
-          }
-
-          Long updatedValue = null;
-          if (updated != null) {
-            updatedValue = (Long) method.invoke(updated);
-          }
-          logger.info(userTrigger.getOperation() + "---less");
-          if (userTrigger.getOperation().equals("set")) {
-            logger.info(updatedValue + "----" + userTrigger.getUserTrigger());
-            if (updatedValue != null
-                && userTrigger.getUserTrigger() != null
-                && updatedValue.equals(userTrigger.getUserTrigger())) {
-              logger.info("string set started");
-              actionStart.startAction(rule, updated);
-            }
-            logger.info("set string  exicuted");
-          } else if (userTrigger.getOperation().equals("remove")) {
-            if (existingValue != null
-                && userTrigger.getUserTrigger() != null
-                && existingValue.equals(userTrigger.getUserTrigger())) {
-              logger.info("string remove started");
-              actionStart.startAction(rule, updated);
-            }
-          }
-        }
-      }
-    }
+          List<Rule> ruleList, User existingValue, User updatedValue, Ticket ticket) {
+    ruleList.forEach(
+            (rule -> {
+              UserTrigger userTrigger = (UserTrigger) rule.getTrigger();
+              logger.info(String.valueOf(updatedValue));
+              System.out.println(userTrigger);
+              logger.info(userTrigger.getOperation() + "---less");
+              if (userTrigger.getOperation().equals("set")) {
+                logger.info(updatedValue + "----" + userTrigger.getCurrentUser());
+                if (updatedValue != null
+                        && userTrigger.getCurrentUser() != null
+                        && updatedValue.equals(userTrigger.getCurrentUser())
+                        && (existingValue == null || !existingValue.equals(updatedValue))) {
+                  logger.info("string set started");
+                  try {
+                    actionStart.startAction(rule, ticket);
+                  } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                  } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                  } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                  }
+                }
+                logger.info("set string  exicuted");
+              } else if (userTrigger.getOperation().equals("change")) {
+                System.out.println(updatedValue + "new" + userTrigger.getCurrentUser());
+                System.out.println(existingValue + "old" + userTrigger.getPreviousUser());
+                if (updatedValue != null
+                        && existingValue != null
+                        && userTrigger.getCurrentUser() != null
+                        && userTrigger.getPreviousUser() != null
+                        && updatedValue.equals(userTrigger.getCurrentUser())
+                        && existingValue.equals(userTrigger.getPreviousUser())) {
+                  logger.info("string change started");
+                  try {
+                    actionStart.startAction(rule, ticket);
+                  } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                  } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                  } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                  }
+                }
+              } else if (userTrigger.getOperation().equals("remove")) {
+                if (existingValue != null
+                        && userTrigger.getPreviousUser() != null
+                        && existingValue.equals(userTrigger.getPreviousUser())
+                        && (updatedValue == null || !updatedValue.equals(existingValue))) {
+                  logger.info("string remove started");
+                  try {
+                    actionStart.startAction(rule, ticket);
+                  } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                  } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                  } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                  }
+                }
+              }
+            }));
   }
 
   public void triggerOnUpdate(Ticket existing, Ticket updated, Long projectId)
@@ -142,6 +163,8 @@ public class TriggerStart {
         String attributName = capitalizeFirstLetter(attribute);
 
         Field attributField = fieldRepo.findByName(attributName);
+        Project project = projectRepo.findById(projectId).get();
+
 
         if (attributField == null || attributField.equals("Class")) continue;
 
@@ -157,8 +180,8 @@ public class TriggerStart {
               || (updatedValue != null
                   && existingValue != null
                   && !updatedValue.equals(existingValue))) {
-            System.out.println("string trigger");
-            List<Rule> ruleListString = ruleRepo.findByTriggerField(attributField);
+            System.out.println("string trigger co");
+            List<Rule> ruleListString = ruleRepo.findByTriggerFieldAndProject(attributField,project);
             triggerOnString(ruleListString, existingValue, updatedValue, updated);
           }
         } else if (attributField.getDataType().equals("NUMBER")) {
@@ -174,14 +197,14 @@ public class TriggerStart {
                   && existingValue != null
                   && !updatedValue.equals(existingValue))) {
             System.out.println("number trigger");
-            List<Rule> ruleListString = ruleRepo.findByTriggerField(attributField);
+            List<Rule> ruleListString = ruleRepo.findByTriggerFieldAndProject(attributField,project);
             triggerOnNumber(ruleListString, existingValue, updatedValue, updated);
           }
         } else if (attributField.getDataType().equals("STAGE")) {
           Stage existingValue = (existing != null) ? (Stage) method.invoke(existing) : null;
           Stage updatedValue = (updated != null) ? (Stage) method.invoke(updated) : null;
 
-                      System.out.println(existingValue + "-----" + updatedValue);
+          System.out.println(existingValue + "-----" + updatedValue);
 
           if ((updatedValue != null && existingValue == null)
               || (updatedValue == null && existingValue != null)
@@ -189,11 +212,24 @@ public class TriggerStart {
                   && existingValue != null
                   && !updatedValue.equals(existingValue))) {
             System.out.println("string trigger");
-            List<Rule> ruleListString = ruleRepo.findByTriggerField(attributField);
+            List<Rule> ruleListString = ruleRepo.findByTriggerFieldAndProject(attributField,project);
             stageTrigger(ruleListString, existingValue, updatedValue, updated);
           }
-        }else if(attributField.getDataType().equals("USER")){
+        } else if (attributField.getDataType().equals("USER")) {
+          User existingValue = (existing != null) ? (User) method.invoke(existing) : null;
+          User updatedValue = (updated != null) ? (User) method.invoke(updated) : null;
 
+          System.out.println(existingValue + "-----" + updatedValue);
+
+          if ((updatedValue != null && existingValue == null)
+              || (updatedValue == null && existingValue != null)
+              || (updatedValue != null
+                  && existingValue != null
+                  && !updatedValue.equals(existingValue))) {
+            System.out.println("user trigger");
+            List<Rule> ruleListString = ruleRepo.findByTriggerFieldAndProject(attributField,project);
+            triggerOnUser(ruleListString,existingValue,updatedValue,updated);
+          }
         }
       }
     }
@@ -333,24 +369,24 @@ public class TriggerStart {
             }
           } else if (stageTrigger.equals("change")) {
             if (existingStage != null
-                    && currentStage != null
-                    && stageTrigger.getCurrentStage() != null
-                    && stageTrigger.getPreviousStage() != null
-            && stageTrigger.getPreviousStage().equals(existingStage)
+                && currentStage != null
+                && stageTrigger.getCurrentStage() != null
+                && stageTrigger.getPreviousStage() != null
+                && stageTrigger.getPreviousStage().equals(existingStage)
                 && stageTrigger.getCurrentStage().equals(currentStage)) {
               logger.info("stage change exicuted");
             }
           } else if (stageTrigger.equals("remove")) {
-            if (
-                    existingStage != null
-                            && stageTrigger.getPreviousStage() != null
-                            && stageTrigger.getPreviousStage().equals(existingStage)
-                            && (currentStage == null || !existingStage.equals(currentStage))) {
+            if (existingStage != null
+                && stageTrigger.getPreviousStage() != null
+                && stageTrigger.getPreviousStage().equals(existingStage)
+                && (currentStage == null || !existingStage.equals(currentStage))) {
               logger.info("stage removed exicuted");
             }
           }
         });
   }
+
   public void triggerOnDate(DateTrigger dateTrigger, Rule rule, Long projectId)
       throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
 

@@ -97,10 +97,10 @@ public class RuleService {
                     StageTrigger stageTrigger=addRule.getStageTrigger();
                     rule.setTrigger(stageTrigger);
                 }
-//                else if (addRule.getTriggerCondition() == ConditionOnTrigger.USER) {
-//                    UserTrigger userTrigger=addRule.getUserTrigger();
-//                    rule.setTrigger(userTrigger);
-//                }
+                else if (addRule.getTriggerCondition() == ConditionOnTrigger.USER) {
+                    UserTrigger userTrigger=addRule.getUserTrigger();
+                    rule.setTrigger(userTrigger);
+                }
                 actionSelect(addRule,rule);
                 logger.info("Created rules for project with ID: {}", projectId);
                 return ruleRepo.save(rule);
@@ -130,10 +130,10 @@ public class RuleService {
             DateAction dateAction = addRule.getDateAction();
             rule.setAction(dateAction);
         }
-//        else if (addRule.getActionCondition() == ConditionOnAction.USER) {
-//            UserAction userAction=addRule.getUserAction();
-//            rule.setAction(userAction);
-//        }
+        else if (addRule.getActionCondition() == ConditionOnAction.USER) {
+            UserAction userAction=addRule.getUserAction();
+            rule.setAction(userAction);
+        }
     }
     public void deleteRule(Long projectId, Long ruleId) {
         Project project = projectRepo.findById(projectId)

@@ -1,9 +1,7 @@
 package com.workflow.service;
 
-import com.workflow.entity.Project;
-import com.workflow.entity.Rule;
-import com.workflow.entity.Stage;
-import com.workflow.entity.Ticket;
+import com.workflow.dto.ResponseWebSocket;
+import com.workflow.entity.*;
 import com.workflow.entity.actionConditionType.*;
 import com.workflow.repository.ProjectRepo;
 import com.workflow.repository.StageRepo;
@@ -16,12 +14,19 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
 public class  ActionStart {
 
     private static final Logger logger = LoggerFactory.getLogger(ActionStart.class);
+
+    @Autowired
+    private  SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private ResponseWebSocket responseWebSocket;
 
     @Autowired
     private ProjectRepo projectRepo;
@@ -32,8 +37,6 @@ public class  ActionStart {
     @Autowired
     private StageRepo stageRepo;
 
-    @Autowired
-    private  SimpMessagingTemplate messagingTemplate;
 
 
     public void startAction(Rule rule, Ticket ticket) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
@@ -78,12 +81,14 @@ public class  ActionStart {
                         logger.info("set string action started");
                         String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
                         logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
+                        Method setterMethod = ticketClass.getMethod(setterMethodName, Long.class);
                         setterMethod.invoke(ticket, numberAction.getNumber());
+                        Ticket savedTicket = ticketRepo.save(ticket);
+                        responseWebSocket.sendResponse(savedTicket);
                     } else if (numberAction.getOperation().equals("remove")) {
                         String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
                         logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
+                        Method setterMethod = ticketClass.getMethod(setterMethodName, Long.class);
                         setterMethod.invoke(ticket, null);
                     }
                 }
@@ -109,12 +114,14 @@ public class  ActionStart {
                         logger.info("set date action started");
                         String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
                         logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
+                        Method setterMethod = ticketClass.getMethod(setterMethodName, Date.class);
                         setterMethod.invoke(ticket, dateAction.getDate());
+                        Ticket savedTicket = ticketRepo.save(ticket);
+                        responseWebSocket.sendResponse(savedTicket);
                     } else if (dateAction.getOperation().equals("remove")) {
                         String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
                         logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
+                        Method setterMethod = ticketClass.getMethod(setterMethodName, Date.class);
                         setterMethod.invoke(ticket, null);
                     }
                 }
@@ -155,11 +162,13 @@ public class  ActionStart {
             if(stageAction.getOperation().equals("set")){
                 logger.info("set Stage");
                 ticket.setStage(stage);
+                Ticket newTicket =ticketRepo.save(ticket);
+                responseWebSocket.sendResponse(newTicket);
             }else if(stageAction.getOperation().equals("remove") && stageAction.getNewId() != null && ticket.getStage() != null && stageAction.getNewId().equals(ticket.getStage())) {
                 logger.info("remove stage ");
 //                ticket.setStage(null);
             }
-            ticketRepo.save(ticket);
+
         }catch (NumberFormatException e){
             logger.info("stage Id not found");
         }
@@ -168,38 +177,6 @@ public class  ActionStart {
         }
     }
 
-    public void actionOnStageId(Rule rule, StageAction stageAction, Ticket ticket) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        logger.info("action on String ");
-        Class<?> ticketClass = Ticket.class;
-        Method[] methods = ticketClass.getMethods();
-        for (Method method : methods) {
-            if (method.getName().startsWith("get")) {
-                String attributeName = method.getName().substring(3);
-                logger.info(attributeName + "--" + rule.getActionField().getName());
-                if (attributeName.equals(rule.getActionField().getName())) {
-                    if (stageAction.getOperation() == null || stageAction == null)
-                        continue;
-                    logger.info(stageAction.getOperation() + "---less");
-                    if (stageAction.getOperation().equals("set")) {
-                        logger.info("set Id action started");
-                        String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
-                        logger.info(setterMethodName);
-
-//                        Method setterMethod = ticketClass.getMethod(setterMethodName, Stage.class);
-//                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
-                        Long newId= stageAction.getNewId();
-                        System.out.println(newId);
-//                        setterMethod.invoke(ticket,newId );
-                    } else if (stageAction.getOperation().equals("remove")) {
-                        String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
-                        logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
-//                        setterMethod.invoke(ticket, null);
-                    }
-                }
-            }
-        }
-    }
 
     public void actionOnString(Rule rule, StringAction stringAction, Ticket ticket)
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
@@ -221,7 +198,8 @@ public class  ActionStart {
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
                         setterMethod.invoke(ticket, stringAction.getNextString());
-                        messagingTemplate.convertAndSend("/topic/actions","Action on String completed: ");
+                        Ticket savedTicket = ticketRepo.save(ticket);
+                        responseWebSocket.sendResponse(savedTicket);
                     } else if (stringAction.getOperation().equals("remove")) {
                         String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
                         logger.info(setterMethodName);
@@ -251,12 +229,14 @@ public class  ActionStart {
                         logger.info(String.valueOf(userAction.getUserAction()));
                         String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
                         logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
+                        Method setterMethod = ticketClass.getMethod(setterMethodName, User.class);
                         setterMethod.invoke(ticket, userAction.getUserAction());
+                        Ticket savedTicket = ticketRepo.save(ticket);
+                        responseWebSocket.sendResponse(savedTicket);
                     } else if (userAction.getOperation().equals("remove")) {
                         String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
                         logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
+                        Method setterMethod = ticketClass.getMethod(setterMethodName, User.class);
                         setterMethod.invoke(ticket, null);
                     }
                 }
