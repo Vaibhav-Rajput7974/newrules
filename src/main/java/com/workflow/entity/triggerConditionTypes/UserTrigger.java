@@ -1,6 +1,5 @@
 package com.workflow.entity.triggerConditionTypes;
 
-import com.workflow.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -13,11 +12,9 @@ public class UserTrigger extends TriggerConditions{
 
     private String operation;
 
-    @ManyToOne
-    private User previousUser;
+    private Long previous;
 
-    @ManyToOne
-    private User currentUser;
+    private Long current;
 
 
 

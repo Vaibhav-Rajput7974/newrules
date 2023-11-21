@@ -37,6 +37,7 @@ public class ProjectService {
     @Autowired
     private FieldRepo fieldRepo;
 
+
     /**
      * Retrieve a list of all projects.
      *
@@ -118,7 +119,8 @@ public class ProjectService {
 
     @Scheduled(fixedRate = 60000)
     public void task1() {
-        List<Rule> ruleList = ruleRepo.findAll();
+        Field field = fieldRepo.findByDataType("DATE");
+        List<Rule> ruleList = ruleRepo.findByTriggerField(field);
         if(!ruleList.isEmpty()){
             ruleList.forEach(rule-> {
                 if( rule.getTrigger() != null &&  rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){

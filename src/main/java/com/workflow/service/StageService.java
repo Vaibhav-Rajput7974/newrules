@@ -157,6 +157,7 @@ public class StageService {
         Optional<Stage> stageOptional = stageRepo.findById(stageId);
         if (stageOptional.isPresent()) {
           stageRepo.deleteById(stageId);
+
           logger.info("Stage deleted successfully");
         } else {
           throw new StageNotFoundException("Stage with ID " + stageId + " not found");

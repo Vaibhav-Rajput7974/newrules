@@ -32,6 +32,7 @@ public class TriggerStart {
 
   public void triggerOnUser(
       List<Rule> ruleList, User existingValue, User updatedValue, Ticket ticket) {
+    logger.info("trigger on user started ");
     ruleList.forEach(
         (rule -> {
           UserTrigger userTrigger = (UserTrigger) rule.getTrigger();
@@ -39,11 +40,11 @@ public class TriggerStart {
           System.out.println(userTrigger);
           logger.info(userTrigger.getOperation() + "---less");
           if (userTrigger.getOperation().equals("set")) {
-            logger.info(updatedValue + "----" + userTrigger.getCurrentUser());
+            logger.info(updatedValue + "----" + userTrigger.getCurrent());
             if (updatedValue != null
-                && userTrigger.getCurrentUser() != null
-                && updatedValue.equals(userTrigger.getCurrentUser())
-                && (existingValue == null || !existingValue.equals(updatedValue))) {
+                && userTrigger.getCurrent() != null
+                && updatedValue.getId().equals(userTrigger.getCurrent())
+                && (existingValue == null || !existingValue.getId().equals(updatedValue.getId()))) {
               logger.info("string set started");
               try {
                 actionStart.startAction(rule, ticket);
@@ -57,14 +58,14 @@ public class TriggerStart {
             }
             logger.info("set string  exicuted");
           } else if (userTrigger.getOperation().equals("change")) {
-            System.out.println(updatedValue + "new" + userTrigger.getCurrentUser());
-            System.out.println(existingValue + "old" + userTrigger.getPreviousUser());
+            System.out.println(updatedValue + "new" + userTrigger.getCurrent());
+            System.out.println(existingValue + "old" + userTrigger.getPrevious());
             if (updatedValue != null
                 && existingValue != null
-                && userTrigger.getCurrentUser() != null
-                && userTrigger.getPreviousUser() != null
-                && updatedValue.equals(userTrigger.getCurrentUser())
-                && existingValue.equals(userTrigger.getPreviousUser())) {
+                && userTrigger.getCurrent() != null
+                && userTrigger.getPrevious() != null
+                && updatedValue.getId().equals(userTrigger.getCurrent())
+                && existingValue.getId().equals(userTrigger.getPrevious())) {
               logger.info("string change started");
               try {
                 actionStart.startAction(rule, ticket);
@@ -78,9 +79,9 @@ public class TriggerStart {
             }
           } else if (userTrigger.getOperation().equals("remove")) {
             if (existingValue != null
-                && userTrigger.getPreviousUser() != null
-                && existingValue.equals(userTrigger.getPreviousUser())
-                && (updatedValue == null || !updatedValue.equals(existingValue))) {
+                && userTrigger.getPrevious() != null
+                && existingValue.getId().equals(userTrigger.getPrevious())
+                && (updatedValue == null || !updatedValue.getId().equals(existingValue.getId()))) {
               logger.info("string remove started");
               try {
                 actionStart.startAction(rule, ticket);
@@ -103,9 +104,8 @@ public class TriggerStart {
     for (Method method : methods) {
       if (method.getName().startsWith("get")) {
         String attribute = method.getName().substring(3);
-        String attributName = capitalizeFirstLetter(attribute);
 
-        Field attributField = fieldRepo.findByName(attributName);
+        Field attributField = fieldRepo.findByName(attribute);
         Project project = projectRepo.findById(projectId).get();
 
         if (attributField == null || attributField.equals("Class")) continue;

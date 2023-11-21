@@ -11,6 +11,9 @@ import java.util.List;
 @Repository
 public interface RuleRepo extends JpaRepository<Rule , Long> {
     List<Rule> findByTriggerFieldAndProject(Field triggerField, Project project);
+
+    List<Rule> findByTriggerField(Field triggerField);
+
     // Find rules by actionField
 //    List<Rule> findByActionFieldAndProject(Field actionField);
 //

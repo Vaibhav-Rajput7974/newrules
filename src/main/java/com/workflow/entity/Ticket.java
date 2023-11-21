@@ -21,15 +21,11 @@ public class Ticket implements Cloneable {
     @Override
     public Ticket clone() {
         try {
-            // Perform a shallow copy of the object
             Ticket clonedTicket = (Ticket) super.clone();
 
-            // If there are reference types within Ticket, clone them as well
-            // Assuming no reference types in this example
 
             return clonedTicket;
         } catch (CloneNotSupportedException e) {
-            // This should never happen since Ticket implements Cloneable
             throw new AssertionError(e);
         }
     }
@@ -58,6 +54,8 @@ public class Ticket implements Cloneable {
     private Stage stage;
 
     private String status;
+
+    private Long persentage;
 
     @Override
     public String toString() {

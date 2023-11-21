@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "action_condition")
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "condition_type")
 public abstract class ActionCondition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
