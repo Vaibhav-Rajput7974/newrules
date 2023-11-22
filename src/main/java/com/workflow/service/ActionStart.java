@@ -3,6 +3,7 @@ package com.workflow.service;
 import com.workflow.dto.ResponseWebSocket;
 import com.workflow.entity.*;
 import com.workflow.entity.actionConditionType.*;
+import com.workflow.entity.triggerConditionTypes.ConditionOnTrigger;
 import com.workflow.repository.ProjectRepo;
 import com.workflow.repository.StageRepo;
 import com.workflow.repository.TicketRepo;
@@ -49,7 +50,7 @@ public class  ActionStart {
                 actionOnString(rule,(StringAction) rule.getAction(),ticket);
                 break;
             case STAGE:
-                actionOnStage((StageAction) rule.getAction(),ticket);
+                actionOnStage(rule,(StageAction) rule.getAction(),ticket);
                 break;
             case PROJECT:
                 actionProject((ProjectAction) rule.getAction(),ticket);
@@ -84,12 +85,9 @@ public class  ActionStart {
                         Method setterMethod = ticketClass.getMethod(setterMethodName, Long.class);
                         setterMethod.invoke(ticket, numberAction.getNumber());
                         Ticket savedTicket = ticketRepo.save(ticket);
-                        responseWebSocket.sendResponse(savedTicket);
-                    } else if (numberAction.getOperation().equals("remove")) {
-                        String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
-                        logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, Long.class);
-                        setterMethod.invoke(ticket, null);
+                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+                            responseWebSocket.sendResponse(savedTicket);
+                        }
                     }
                 }
             }
@@ -116,13 +114,10 @@ public class  ActionStart {
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, Date.class);
                         setterMethod.invoke(ticket, dateAction.getDate());
-                        Ticket savedTicket = ticketRepo.save(ticket);
-                        responseWebSocket.sendResponse(savedTicket);
-                    } else if (dateAction.getOperation().equals("remove")) {
-                        String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
-                        logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, Date.class);
-                        setterMethod.invoke(ticket, null);
+                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+                            Ticket savedTicket = ticketRepo.save(ticket);
+                            responseWebSocket.sendResponse(savedTicket);
+                        }
                     }
                 }
             }
@@ -147,14 +142,12 @@ public class  ActionStart {
                     logger.info(String.valueOf(stage.getStageId()));
                     ticket.setStage(stage);
                     ticketRepo.save(ticket);
-                }else if(operation.equals("remove")){
-                    ticket.setStage(null);
                 }
             }
         }
     }
 
-    public void actionOnStage(StageAction stageAction, Ticket ticket) {
+    public void actionOnStage(Rule rule,StageAction stageAction, Ticket ticket) {
         logger.info("Changing stage to: {}", stageAction);
         try {
             System.out.println("runing");
@@ -162,11 +155,10 @@ public class  ActionStart {
             if(stageAction.getOperation().equals("set")){
                 logger.info("set Stage");
                 ticket.setStage(stage);
-                Ticket newTicket =ticketRepo.save(ticket);
-                responseWebSocket.sendResponse(newTicket);
-            }else if(stageAction.getOperation().equals("remove") && stageAction.getNewId() != null && ticket.getStage() != null && stageAction.getNewId().equals(ticket.getStage())) {
-                logger.info("remove stage ");
-//                ticket.setStage(null);
+                if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+                    Ticket newTicket =ticketRepo.save(ticket);
+                    responseWebSocket.sendResponse(newTicket);
+                }
             }
 
         }catch (NumberFormatException e){
@@ -198,13 +190,10 @@ public class  ActionStart {
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
                         setterMethod.invoke(ticket, stringAction.getNextString());
-                        Ticket savedTicket = ticketRepo.save(ticket);
-                        responseWebSocket.sendResponse(savedTicket);
-                    } else if (stringAction.getOperation().equals("remove")) {
-                        String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
-                        logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
-                        setterMethod.invoke(ticket, null);
+                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+                            Ticket savedTicket = ticketRepo.save(ticket);
+                            responseWebSocket.sendResponse(savedTicket);
+                        }
                     }
                 }
             }
@@ -231,13 +220,10 @@ public class  ActionStart {
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, User.class);
                         setterMethod.invoke(ticket, userAction.getUserAction());
-                        Ticket savedTicket = ticketRepo.save(ticket);
-                        responseWebSocket.sendResponse(savedTicket);
-                    } else if (userAction.getOperation().equals("remove")) {
-                        String setterMethodName = "set" + capitalizeFirstLetter(attributeName);
-                        logger.info(setterMethodName);
-                        Method setterMethod = ticketClass.getMethod(setterMethodName, User.class);
-                        setterMethod.invoke(ticket, null);
+                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+                            Ticket savedTicket = ticketRepo.save(ticket);
+                            responseWebSocket.sendResponse(savedTicket);
+                        }
                     }
                 }
             }

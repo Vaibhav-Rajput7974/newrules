@@ -175,8 +175,8 @@ public class TicketService {
               existingTicket.setStage(newStage);
             }
             System.out.println("dsds" + existingTicket.getStage().getStageId());
+            triggerStart.triggerOnUpdate(existingTicketDummy, existingTicket, projectId);
             Ticket ticket = ticketRepo.save(existingTicket);
-            triggerStart.triggerOnUpdate(existingTicketDummy, ticket, projectId);
             logger.info("Ticket Updated Successfully");
             return Optional.of(ticket);
           } else {

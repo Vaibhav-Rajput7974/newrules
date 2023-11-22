@@ -58,8 +58,6 @@ public class TriggerStart {
             }
             logger.info("set string  exicuted");
           } else if (userTrigger.getOperation().equals("change")) {
-            System.out.println(updatedValue + "new" + userTrigger.getCurrent());
-            System.out.println(existingValue + "old" + userTrigger.getPrevious());
             if (updatedValue != null
                 && existingValue != null
                 && userTrigger.getCurrent() != null
@@ -128,7 +126,6 @@ public class TriggerStart {
             triggerOnString(ruleListString, existingValue, updatedValue, updated);
           }
         } else if (attributField.getDataType().equals("NUMBER")) {
-
           Long existingValue = (existing != null) ? (Long) method.invoke(existing) : null;
           Long updatedValue = (updated != null) ? (Long) method.invoke(updated) : null;
 
@@ -398,10 +395,6 @@ public class TriggerStart {
           rule,
           projectId);
     }
-  }
-
-  private String capitalizeFirstLetter(String input) {
-    return input.substring(0, 1).toUpperCase() + input.substring(1);
   }
 
   public void dueDateApprocha(

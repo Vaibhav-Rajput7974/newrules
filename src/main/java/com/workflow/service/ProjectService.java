@@ -23,129 +23,132 @@ import java.util.Optional;
 @Service
 public class ProjectService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
+  private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
 
-    @Autowired
-    private ProjectRepo projectRepo;
+  @Autowired private ProjectRepo projectRepo;
 
-    @Autowired
-    private TriggerStart triggerStart;
+  @Autowired private TriggerStart triggerStart;
 
-    @Autowired
-    private RuleRepo ruleRepo;
+  @Autowired private RuleRepo ruleRepo;
 
-    @Autowired
-    private FieldRepo fieldRepo;
+  @Autowired private FieldRepo fieldRepo;
 
-
-    /**
-     * Retrieve a list of all projects.
-     *
-     * @return List of all projects.
-     * @throws Exception if an error occurs during the operation.
-     */
-    public List<Project> getAllProjects() {
-        try {
-            logger.info("Retrieving all projects");
-            return projectRepo.findAll();
-        } catch (Exception e) {
-            logger.error("Error occurred while retrieving projects: {}", e.getMessage(), e);
-            throw e;
-        }
+  /**
+   * Retrieve a list of all projects.
+   *
+   * @return List of all projects.
+   * @throws Exception if an error occurs during the operation.
+   */
+  public List<Project> getAllProjects() {
+    try {
+      logger.info("Retrieving all projects");
+      return projectRepo.findAll();
+    } catch (Exception e) {
+      logger.error("Error occurred while retrieving projects: {}", e.getMessage(), e);
+      throw e;
     }
+  }
 
-    /**
-     * Retrieve a project by its unique ID.
-     *
-     * @param projectId The ID of the project to retrieve.
-     * @return The project with the given ID.
-     * @throws ProjectNotFoundException if the project with the specified ID is not found.
-     * @throws Exception if an error occurs during the operation.
-     */
-    public Project getProjectById(long projectId) {
-        try {
-            Optional<Project> project = projectRepo.findById(projectId);
-            if (project.isPresent()) {
-                logger.info("Retrieving project with ID = " + projectId);
-                return project.get();
-            } else {
-                throw new ProjectNotFoundException("Project with ID " + projectId + " not found");
-            }
-        } catch (Exception e) {
-            logger.error("Error occurred while retrieving project by ID {}: {}", projectId, e.getMessage());
-            throw e;
-        }
+  /**
+   * Retrieve a project by its unique ID.
+   *
+   * @param projectId The ID of the project to retrieve.
+   * @return The project with the given ID.
+   * @throws ProjectNotFoundException if the project with the specified ID is not found.
+   * @throws Exception if an error occurs during the operation.
+   */
+  public Project getProjectById(long projectId) {
+    try {
+      Optional<Project> project = projectRepo.findById(projectId);
+      if (project.isPresent()) {
+        logger.info("Retrieving project with ID = " + projectId);
+        return project.get();
+      } else {
+        throw new ProjectNotFoundException("Project with ID " + projectId + " not found");
+      }
+    } catch (Exception e) {
+      logger.error(
+          "Error occurred while retrieving project by ID {}: {}", projectId, e.getMessage());
+      throw e;
     }
+  }
 
-    /**
-     * Add a new project.
-     *
-     * @param newProject The project to be added.
-     * @return The newly added project.
-     * @throws Exception if an error occurs during the operation.
-     */
-    public Project addNewProject(Project newProject) {
-        try {
-            logger.info("Adding a new project");
-            return projectRepo.save(newProject);
-        } catch (Exception e) {
-            logger.error("Error occurred while adding a new project: {}", e.getMessage(), e);
-            throw e;
-        }
+  /**
+   * Add a new project.
+   *
+   * @param newProject The project to be added.
+   * @return The newly added project.
+   * @throws Exception if an error occurs during the operation.
+   */
+  public Project addNewProject(Project newProject) {
+    try {
+      logger.info("Adding a new project");
+      return projectRepo.save(newProject);
+    } catch (Exception e) {
+      logger.error("Error occurred while adding a new project: {}", e.getMessage(), e);
+      throw e;
     }
+  }
 
-    /**
-     * Delete a project by its unique ID.
-     *
-     * @param projectId The ID of the project to be deleted.
-     * @return true if the project is successfully deleted; false if the project is not found.
-     * @throws ProjectNotFoundException if the project with the specified ID is not found.
-     * @throws Exception if an error occurs during the operation.
-     */
-    public boolean deleteProjectById(long projectId) {
-        try {
-            if (projectRepo.existsById(projectId)) {
-                logger.info("Deleting project with ID = " + projectId);
-                projectRepo.deleteById(projectId);
-                return true;
-            } else {
-                throw new ProjectNotFoundException("Project with ID " + projectId + " not found");
-            }
-        } catch (Exception e) {
-            logger.error("Error occurred while deleting project by ID {}: {}", projectId, e.getMessage(), e);
-            throw e;
-        }
+  /**
+   * Delete a project by its unique ID.
+   *
+   * @param projectId The ID of the project to be deleted.
+   * @return true if the project is successfully deleted; false if the project is not found.
+   * @throws ProjectNotFoundException if the project with the specified ID is not found.
+   * @throws Exception if an error occurs during the operation.
+   */
+  public boolean deleteProjectById(long projectId) {
+    try {
+      if (projectRepo.existsById(projectId)) {
+        logger.info("Deleting project with ID = " + projectId);
+        projectRepo.deleteById(projectId);
+        return true;
+      } else {
+        throw new ProjectNotFoundException("Project with ID " + projectId + " not found");
+      }
+    } catch (Exception e) {
+      logger.error(
+          "Error occurred while deleting project by ID {}: {}", projectId, e.getMessage(), e);
+      throw e;
     }
+  }
 
-    @Scheduled(fixedRate = 60000)
-    public void task1() {
-        Field field = fieldRepo.findByDataType("DATE");
-        List<Rule> ruleList = ruleRepo.findByTriggerField(field);
-        if(!ruleList.isEmpty()){
-            ruleList.forEach(rule-> {
-                if( rule.getTrigger() != null &&  rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
-                    Date currentDate=new Date();
+  @Scheduled(cron = "0 * * * * *")
+  public void task1() {
+    List<Field> fieldList = fieldRepo.findByDataType("DATE");
+    fieldList.forEach(
+        field -> {
+          List<Rule> ruleList = ruleRepo.findByTriggerField(field);
+          if (!ruleList.isEmpty()) {
+            ruleList.forEach(
+                rule -> {
+                  if (rule.getTrigger() != null
+                      && rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE) {
+                    Date currentDate = new Date();
                     DateTrigger dateTrigger = (DateTrigger) rule.getTrigger();
                     try {
-                        triggerStart.triggerOnDate(dateTrigger,rule,rule.getProject().getProjectId());
+                      triggerStart.triggerOnDate(
+                          dateTrigger, rule, rule.getProject().getProjectId());
                     } catch (InvocationTargetException e) {
-                        throw new RuntimeException(e);
+                      throw new RuntimeException(e);
                     } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
+                      throw new RuntimeException(e);
                     } catch (NoSuchMethodException e) {
-                        throw new RuntimeException(e);
+                      throw new RuntimeException(e);
                     }
                     System.out.println("Task 1 executed at: " + currentDate);
-                }
-            });
-        }
-    }
-    public List<Field> getAllField() {
-        try {
-            return fieldRepo.findAll();
-        } catch (Exception e) {
-            throw e;
-        }
-    }
+                  }
+                });
+          }
+        });
+  }
 
+  public List<Field> getAllField() {
+    try {
+      return fieldRepo.findAll();
+    } catch (Exception e) {
+      throw e;
+    }
+  }
 }
