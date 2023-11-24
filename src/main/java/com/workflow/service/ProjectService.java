@@ -4,11 +4,13 @@ import com.workflow.customException.ProjectNotFoundException;
 import com.workflow.entity.Field;
 import com.workflow.entity.Project;
 import com.workflow.entity.Rule;
+import com.workflow.entity.Trigger;
 import com.workflow.entity.triggerConditionTypes.ConditionOnTrigger;
 import com.workflow.entity.triggerConditionTypes.DateTrigger;
 import com.workflow.repository.FieldRepo;
 import com.workflow.repository.ProjectRepo;
 import com.workflow.repository.RuleRepo;
+import com.workflow.repository.TriggerRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,32 +116,26 @@ public class ProjectService {
     }
   }
 
+  @Autowired private TriggerRepo triggerRepo;
+
   @Scheduled(cron = "0 * * * * *")
   public void task1() {
     List<Field> fieldList = fieldRepo.findByDataType("DATE");
     fieldList.forEach(
         field -> {
-          List<Rule> ruleList = ruleRepo.findByTriggerField(field);
-          if (!ruleList.isEmpty()) {
-            ruleList.forEach(
-                rule -> {
-                  if (rule.getTrigger() != null
-                      && rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE) {
-                    Date currentDate = new Date();
-                    DateTrigger dateTrigger = (DateTrigger) rule.getTrigger();
-                    try {
-                      triggerStart.triggerOnDate(
-                          dateTrigger, rule, rule.getProject().getProjectId());
-                    } catch (InvocationTargetException e) {
-                      throw new RuntimeException(e);
-                    } catch (IllegalAccessException e) {
-                      throw new RuntimeException(e);
-                    } catch (NoSuchMethodException e) {
-                      throw new RuntimeException(e);
-                    }
-                    System.out.println("Task 1 executed at: " + currentDate);
-                  }
-                });
+          List<Trigger> triggerList = triggerRepo.findByTriggerField(field);
+          if (!triggerList.isEmpty()) {
+            for(Trigger trigger : triggerList){
+              try {
+                triggerStart.triggerOnDate(trigger);
+              } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+              } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+              } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+              }
+            }
           }
         });
   }

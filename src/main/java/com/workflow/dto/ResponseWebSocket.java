@@ -28,4 +28,8 @@ public class ResponseWebSocket {
         ticketDto.setTicketPriority(ticket.getTicketPriority());
         messagingTemplate.convertAndSend("/topic/ticket-updates",  ticketDto);
     }
+
+    public void sendMessaage(Long ruleId){
+        messagingTemplate.convertAndSend("/topic/ticket-message",ruleId);
+    }
 }

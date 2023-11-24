@@ -105,7 +105,8 @@ public class TicketService {
     }
   }
 
-  public Ticket addTicket(Ticket addTicket, long projectId, long stageId) throws InvocationTargetException, IllegalAccessException {
+  public Ticket addTicket(Ticket addTicket, long projectId, long stageId)
+      throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
     try {
       Optional<Project> projectOptional = projectRepo.findById(projectId);
       if (projectOptional.isPresent()) {
@@ -142,7 +143,7 @@ public class TicketService {
   }
 
   public Optional<Ticket> updateTicket(TicketDto updateTicket, Long projectId, Long stageId)
-      throws InvocationTargetException, IllegalAccessException {
+      throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
     try {
       Optional<Project> projectOptional = projectRepo.findById(projectId);
       if (projectOptional.isPresent()) {
@@ -174,7 +175,6 @@ public class TicketService {
               Stage newStage=stageRepo.findById(newStageId).get();
               existingTicket.setStage(newStage);
             }
-            System.out.println("dsds" + existingTicket.getStage().getStageId());
             triggerStart.triggerOnUpdate(existingTicketDummy, existingTicket, projectId);
             Ticket ticket = ticketRepo.save(existingTicket);
             logger.info("Ticket Updated Successfully");

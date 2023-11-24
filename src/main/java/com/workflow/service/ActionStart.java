@@ -16,7 +16,10 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+
+import static com.workflow.entity.actionConditionType.ConditionOnAction.NUMBER;
 
 @Service
 public class  ActionStart {
@@ -38,41 +41,42 @@ public class  ActionStart {
     @Autowired
     private StageRepo stageRepo;
 
-
-
-    public void startAction(Rule rule, Ticket ticket) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        logger.info("action");
-        switch (rule.getAction().getConditionType()){
-            case NUMBER:
-                actionOnNumber(rule,(NumberAction) rule.getAction(),ticket);
-                break;
-            case STRING:
-                actionOnString(rule,(StringAction) rule.getAction(),ticket);
-                break;
-            case STAGE:
-                actionOnStage(rule,(StageAction) rule.getAction(),ticket);
-                break;
-            case PROJECT:
-                actionProject((ProjectAction) rule.getAction(),ticket);
-                break;
-            case DATE:
-                actionOnDate(rule, (DateAction) rule.getAction(),ticket);
-                break;
-            case USER:
-                actionOnUser(rule,(UserAction) rule.getAction(),ticket);
-            default:
+    public void startAction(List<Action> actionList, Ticket ticket) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        for(Action action : actionList){
+            switch (action.getActionCondition().getConditionType()){
+                case NUMBER:
+                    actionOnNumber(action,ticket);
+                    break;
+                case STRING:
+                    actionOnString(action,ticket);
+                    break;
+                case STAGE:
+                    actionOnStage(action,ticket);
+                    break;
+                case PROJECT:
+                    actionProject(action,ticket);
+                    break;
+                case DATE:
+                    actionOnDate(action,ticket);
+                    break;
+                case USER:
+                    actionOnUser(action,ticket);
+                default:
+            }
         }
+        logger.info("action");
     }
 
-    public void actionOnNumber(Rule rule,NumberAction numberAction, Ticket ticket) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void actionOnNumber(Action action, Ticket ticket) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         logger.info("action on String ");
         Class<?> ticketClass = Ticket.class;
         Method[] methods = ticketClass.getMethods();
+        NumberAction numberAction = (NumberAction) action.getActionCondition();
         for (Method method : methods) {
             if (method.getName().startsWith("get")) {
                 String attributeName = method.getName().substring(3);
-                logger.info(attributeName + "--" + capitalizeFirstLetter(rule.getActionField().getName()));
-                if (attributeName.equals(capitalizeFirstLetter(rule.getActionField().getName()))) {
+                logger.info(attributeName + "--" + capitalizeFirstLetter(action.getActionField().getName()));
+                if (attributeName.equals(capitalizeFirstLetter(action.getActionField().getName()))) {
 
                     if (numberAction.getOperation() == null || numberAction == null)
                         continue;
@@ -84,25 +88,26 @@ public class  ActionStart {
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, Long.class);
                         setterMethod.invoke(ticket, numberAction.getNumber());
-                        Ticket savedTicket = ticketRepo.save(ticket);
-                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
-                            responseWebSocket.sendResponse(savedTicket);
-                        }
+//                        Ticket savedTicket = ticketRepo.save(ticket);
+////                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+//                            responseWebSocket.sendResponse(savedTicket);
+////                        }
                     }
                 }
             }
         }
     }
 
-    public void actionOnDate(Rule rule, DateAction dateAction, Ticket ticket) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void actionOnDate(Action action, Ticket ticket) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         logger.info("action on String ");
         Class<?> ticketClass = Ticket.class;
         Method[] methods = ticketClass.getMethods();
+        DateAction dateAction = (DateAction) action.getActionCondition();
         for (Method method : methods) {
             if (method.getName().startsWith("get")) {
                 String attributeName = method.getName().substring(3);
-                logger.info(attributeName + "--" + capitalizeFirstLetter(rule.getActionField().getName()));
-                if (attributeName.equals(capitalizeFirstLetter(rule.getActionField().getName()))) {
+                logger.info(attributeName + "--" + capitalizeFirstLetter(action.getActionField().getName()));
+                if (attributeName.equals(capitalizeFirstLetter(action.getActionField().getName()))) {
 
                     if (dateAction.getOperation() == null || dateAction == null)
                         continue;
@@ -114,17 +119,18 @@ public class  ActionStart {
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, Date.class);
                         setterMethod.invoke(ticket, dateAction.getDate());
-                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
-                            Ticket savedTicket = ticketRepo.save(ticket);
-                            responseWebSocket.sendResponse(savedTicket);
-                        }
+////                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+//                            Ticket savedTicket = ticketRepo.save(ticket);
+//                            responseWebSocket.sendResponse(savedTicket);
+////                        }
                     }
                 }
             }
         }
     }
 
-    public void actionProject(ProjectAction projectAction, Ticket ticket){
+    public void actionProject(Action action, Ticket ticket){
+        ProjectAction projectAction = (ProjectAction) action.getActionCondition();
         logger.info("project set startes");
         String operation=projectAction.getOperation();
         Long currentprojectId=projectAction.getProjectId();
@@ -147,18 +153,19 @@ public class  ActionStart {
         }
     }
 
-    public void actionOnStage(Rule rule,StageAction stageAction, Ticket ticket) {
-        logger.info("Changing stage to: {}", stageAction);
+    public void actionOnStage(Action action, Ticket ticket) {
+        logger.info("Changing stage to: {}");
+        StageAction stageAction = (StageAction) action.getActionCondition();
         try {
             System.out.println("runing");
             Stage stage = stageRepo.findById(stageAction.getNewId()).get();
             if(stageAction.getOperation().equals("set")){
                 logger.info("set Stage");
                 ticket.setStage(stage);
-                if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
-                    Ticket newTicket =ticketRepo.save(ticket);
-                    responseWebSocket.sendResponse(newTicket);
-                }
+////                if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+//                    Ticket newTicket =ticketRepo.save(ticket);
+//                    responseWebSocket.sendResponse(newTicket);
+////                }
             }
 
         }catch (NumberFormatException e){
@@ -170,16 +177,18 @@ public class  ActionStart {
     }
 
 
-    public void actionOnString(Rule rule, StringAction stringAction, Ticket ticket)
+    public void actionOnString(Action action, Ticket ticket)
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         logger.info("action on String ");
         Class<?> ticketClass = Ticket.class;
+        StringAction stringAction = (StringAction) action.getActionCondition();
+
         Method[] methods = ticketClass.getMethods();
         for (Method method : methods) {
             if (method.getName().startsWith("get")) {
                 String attributeName = method.getName().substring(3);
-                logger.info(attributeName + "--" + capitalizeFirstLetter(rule.getActionField().getName()));
-                if (attributeName.equals(capitalizeFirstLetter(rule.getActionField().getName()))) {
+                logger.info(attributeName + "--" + capitalizeFirstLetter(action.getActionField().getName()));
+                if (attributeName.equals(capitalizeFirstLetter(action.getActionField().getName()))) {
                     if (stringAction.getOperation() == null || stringAction == null)
                         continue;
                     logger.info(stringAction.getOperation() + "---less");
@@ -190,26 +199,27 @@ public class  ActionStart {
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, String.class);
                         setterMethod.invoke(ticket, stringAction.getNextString());
-                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
-                            Ticket savedTicket = ticketRepo.save(ticket);
-                            responseWebSocket.sendResponse(savedTicket);
-                        }
+////                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+//                            Ticket savedTicket = ticketRepo.save(ticket);
+//                            responseWebSocket.sendResponse(savedTicket);
+////                        }
                     }
                 }
             }
         }
     }
 
-    public void actionOnUser(Rule rule, UserAction userAction, Ticket ticket)
+    public void actionOnUser(Action action, Ticket ticket)
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         logger.info("action on User ");
         Class<?> ticketClass = Ticket.class;
         Method[] methods = ticketClass.getMethods();
+        UserAction userAction = (UserAction) action.getActionCondition();
         for (Method method : methods) {
             if (method.getName().startsWith("get")) {
                 String attributeName = method.getName().substring(3);
-                logger.info(attributeName + "--" + capitalizeFirstLetter(rule.getActionField().getName()));
-                if (attributeName.equals(capitalizeFirstLetter(rule.getActionField().getName()))) {
+                logger.info(attributeName + "--" + capitalizeFirstLetter(action.getActionField().getName()));
+                if (attributeName.equals(capitalizeFirstLetter(action.getActionField().getName()))) {
                     if (userAction.getOperation() == null || userAction == null)
                         continue;
                     logger.info(userAction.getOperation() + "---less");
@@ -220,16 +230,15 @@ public class  ActionStart {
                         logger.info(setterMethodName);
                         Method setterMethod = ticketClass.getMethod(setterMethodName, User.class);
                         setterMethod.invoke(ticket, userAction.getUserAction());
-                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
-                            Ticket savedTicket = ticketRepo.save(ticket);
-                            responseWebSocket.sendResponse(savedTicket);
-                        }
+////                        if(rule.getTrigger().getConditionType() == ConditionOnTrigger.DATE){
+//                            Ticket savedTicket = ticketRepo.save(ticket);
+//                            responseWebSocket.sendResponse(savedTicket);
+////                        }
                     }
                 }
             }
         }
     }
-
     private String capitalizeFirstLetter(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1);
     }

@@ -1,5 +1,7 @@
 package com.workflow.entity;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.workflow.entity.actionConditionType.ActionCondition;
 import com.workflow.entity.triggerConditionTypes.TriggerConditions;
 import jakarta.persistence.*;
@@ -7,31 +9,29 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 public class Rule {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long ruleId;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "trigger_field_id")
-    private Field triggerField;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long ruleId;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private TriggerConditions trigger;
+  @OneToMany(mappedBy = "rule",cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JsonManagedReference
+  private List<Trigger> triggerList = new ArrayList<>();
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private ActionCondition action;
+  @OneToMany(mappedBy = "rule",cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JsonManagedReference
+  private List<Action> actionList = new ArrayList<>();
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "action_field_id")
-    private Field actionField;
-
-    @ManyToOne
-    @JoinColumn(name = "project_id")
-    @JsonBackReference
-    private Project project;
+  @ManyToOne
+  @JoinColumn(name = "project_id")
+  @JsonBackReference
+  private Project project;
 }
